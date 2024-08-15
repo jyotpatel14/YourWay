@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".post.BasicPost">
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:background="@color/baseColor"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/title_basic_post"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp"
+        android:text="Create Post"
+        android:textColor="@color/antiBaseColorLight"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/et_post_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:hint="Title"
+        app:layout_constraintTop_toBottomOf="@id/title_basic_post" />
+
+    <EditText
+        android:id="@+id/et_post_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:gravity="top"
+        android:hint="Description"
+        android:lines="5"
+        android:maxLines="5"
+        app:layout_constraintTop_toBottomOf="@id/et_post_title" />
+
+    <Button
+        android:id="@+id/btn_goto_post_review"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Review Post"
+        app:layout_constraintTop_toBottomOf="@id/et_post_description"
+        android:layout_margin="20dp"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
