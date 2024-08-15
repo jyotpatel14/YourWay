@@ -51,4 +51,5 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation ("com.github.Drjacky:ImagePicker:2.3.22")
 }

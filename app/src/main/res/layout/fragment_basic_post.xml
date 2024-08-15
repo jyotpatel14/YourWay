@@ -46,11 +46,29 @@
         app:layout_constraintTop_toBottomOf="@id/et_post_title" />
 
     <Button
+        android:id="@+id/btn_display_image_picker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Open Image Picker"
+        app:layout_constraintTop_toBottomOf="@id/et_post_description"
+        android:layout_marginHorizontal="100dp"
+        />
+
+    <!-- FragmentContainerView for ImagePickerFragment -->
+    <FrameLayout
+        android:id="@+id/image_picker_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/btn_display_image_picker"
+        />
+
+
+    <Button
         android:id="@+id/btn_goto_post_review"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Review Post"
-        app:layout_constraintTop_toBottomOf="@id/et_post_description"
+        app:layout_constraintTop_toBottomOf="@id/image_picker_container"
         android:layout_margin="20dp"
         />
 

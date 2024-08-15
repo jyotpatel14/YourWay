@@ -17,13 +17,12 @@ class BasicPost : Fragment() {
     private var _binding: FragmentBasicPostBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var db: FirebaseFirestore
+    private val post = Post() // This will hold the post data including title, description, and images
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Initialize View Binding
         _binding = FragmentBasicPostBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -31,49 +30,33 @@ class BasicPost : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize Firestore
-        db = FirebaseFirestore.getInstance()
+        // Handle Image Picker button click
+        binding.btnDisplayImagePicker.setOnClickListener {
+            val fragment = ImagePickerFragment { imageUris ->
+                post.imageUrls = imageUris.map { it.toString() }.toMutableList()
+            }
+            childFragmentManager.beginTransaction()
+                .replace(R.id.image_picker_container, fragment)
+                .commit()
+        }
 
-        // Set up the button click listener
+        // Handle Review Post button click
         binding.btnGotoPostReview.setOnClickListener {
-            savePostToFirestore()
+            // Collect title and description
+            post.title = binding.etPostTitle.text.toString()
+            post.description = binding.etPostDescription.text.toString()
+
+            // Open PostReviewFragment and pass the post data
+            val fragment = PostReview.newInstance(post)
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit()
         }
-    }
-
-    private fun savePostToFirestore() {
-        // Get the title and description text
-        val title = binding.etPostTitle.text.toString()
-        val description = binding.etPostDescription.text.toString()
-
-        // Validate inputs
-        if (title.isEmpty() || description.isEmpty()) {
-            Toast.makeText(requireContext(), "Please fill in both fields", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // Create a new post map
-        val post = hashMapOf(
-            "title" to title,
-            "description" to description
-        )
-
-        // Save to Firestore
-        db.collection("posts")
-            .add(post)
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Post added successfully", Toast.LENGTH_SHORT).show()
-                // Optionally clear the fields
-                binding.etPostTitle.text.clear()
-                binding.etPostDescription.text.clear()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to add post: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Avoid memory leaks
         _binding = null
     }
 }
