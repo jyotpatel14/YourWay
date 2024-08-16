@@ -17,6 +17,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.yourway.R
@@ -27,11 +28,12 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-class ImagePickerFragment(private val onImagesPicked: (MutableList<String>) -> Unit) : Fragment() {
+class ImagePickerFragment(private val onImagesPicked: (MutableList<Uri>) -> Unit) : Fragment() {
     private lateinit var binding: FragmentImagePickerBinding
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ImageAdapter
-    private val selectedImagePaths = mutableListOf<String>()
+    private var selectedImagePaths = mutableListOf<String>()
+    private var uriList: MutableList<Uri> = mutableListOf()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,11 +47,12 @@ class ImagePickerFragment(private val onImagesPicked: (MutableList<String>) -> U
         super.onViewCreated(view, savedInstanceState)
 
         recyclerView = binding.recyclerViewImages
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.layoutManager = GridLayoutManager(requireContext(),3)
         adapter = ImageAdapter(selectedImagePaths)
         recyclerView.adapter = adapter
 
         binding.btnSelectImages.setOnClickListener {
+
             val intent = ImagePicker.with(requireActivity())
                 .provider(ImageProvider.GALLERY) // Allows both camera and gallery
                 .setMultipleAllowed(true)
@@ -63,8 +66,9 @@ class ImagePickerFragment(private val onImagesPicked: (MutableList<String>) -> U
         }
 
         binding.btnDone.setOnClickListener {
-            onImagesPicked(selectedImagePaths)
+            onImagesPicked(uriList)
             parentFragmentManager.popBackStack()
+            Toast.makeText(requireContext(), "Image Selection Complete " + uriList.size, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -77,15 +81,15 @@ class ImagePickerFragment(private val onImagesPicked: (MutableList<String>) -> U
             val clipData = res.data?.clipData
 //            val uriList = mutableListOf<Uri>()
 
-            val uriList: ArrayList<Uri>? = res.data?.getParcelableArrayListExtra("extra.multiple_file_path")
+            uriList = res.data?.getParcelableArrayListExtra("extra.multiple_file_path")!!
 
 
             if (clipData != null) {
                 for (i in 0 until clipData.itemCount) {
-                    uriList!!.add(clipData.getItemAt(i).uri)
+                    uriList.add(clipData.getItemAt(i).uri)
                 }
             } else {
-                res.data?.data?.let { uriList!!.add(it) }
+                res.data?.data?.let { uriList.add(it) }
             }
 
             // Process and display the images
@@ -107,14 +111,12 @@ class ImagePickerFragment(private val onImagesPicked: (MutableList<String>) -> U
                 val filePath = getRealPathFromURI(uri)
                 if (filePath != null) {
                     selectedImagePaths.add(filePath)
-
                     Log.d("SelectedImage", "Image path: $filePath")
                 } else {
                     Log.e("ImagePickerFragment", "Failed to get the file path from URI: $uri")
                 }
             }
             adapter.notifyDataSetChanged()
-            // Notify the adapter that the data has changed
         }
     }
 

@@ -1,5 +1,6 @@
 package com.example.yourway.post
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -33,7 +34,7 @@ class BasicPost : Fragment() {
         // Handle Image Picker button click
         binding.btnDisplayImagePicker.setOnClickListener {
             val fragment = ImagePickerFragment { imageUris ->
-                post.imageUrls = imageUris.map { it.toString() }.toMutableList()
+                post.imageUrls = imageUris.map { it }.toMutableList()
             }
             childFragmentManager.beginTransaction()
                 .replace(R.id.image_picker_container, fragment)
