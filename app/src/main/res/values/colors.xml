@@ -6,4 +6,8 @@
     <color name="antiBaseColorLight">#ECECEC</color>
 
     <color name="antiBaseColorDark">#12003C</color>
+    <color name="logoBackground">#F05159</color>
+    <color name="logoBackgroundLight">#EDACB0</color>
+    <color name="logoBackgroundDark">#671A1E</color>
+    <color name="logoBackgroundBrilliant">#F40E19</color>
 </resources>

@@ -6,6 +6,7 @@
     android:orientation="vertical"
     tools:context=".userprofile.CreateUserProfile"
     android:padding="20dp"
+    android:isScrollContainer="true"
     >
 
     <TextView

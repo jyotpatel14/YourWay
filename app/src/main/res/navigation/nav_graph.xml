@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/displayUserProfile">
+
+    <fragment
+        android:id="@+id/displayUserProfile"
+        android:name="com.example.yourway.userprofile.DisplayUserProfile"
+        android:label="fragment_display_user_profile"
+        tools:layout="@layout/fragment_display_user_profile" />
+</navigation>

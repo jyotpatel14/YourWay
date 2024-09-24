@@ -1,9 +1,11 @@
 package com.example.yourway.post
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 
+@SuppressLint("ParcelCreator")
 data class Post(
     var title: String = "",
     var description: String = "",
