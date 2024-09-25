@@ -12,12 +12,15 @@ class AddPostActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_post)
 
+
+
         // Check if savedInstanceState is null to avoid overlapping fragments when rotating the device
         if (savedInstanceState == null) {
             // Add BasicPostFragment to this activity
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, BasicPost())
+                .replace(R.id.fcv_addpost, BasicPost())
                 .commit()
         }
     }
+    
 }

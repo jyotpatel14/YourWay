@@ -1,5 +1,6 @@
 package com.example.yourway.post
 
+import android.content.Context.MODE_PRIVATE
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
@@ -7,12 +8,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
-import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.yourway.R
+import com.example.yourway.Toast
 import com.example.yourway.databinding.FragmentPostReviewBinding
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
@@ -59,13 +62,15 @@ class PostReview : Fragment() {
         db = FirebaseFirestore.getInstance()
         storage = FirebaseStorage.getInstance()
 
+
+
         // Retrieve the Post object from arguments
         post = requireArguments().getParcelable("post")!!
 
         // Set up the RecyclerView to display images
         imageUris.addAll(post.imageUrls.map { it }) // Assuming `imageUrls` contains the URIs
         imageAdapter = ImageAdapter(imageUris)
-        Toast.makeText(requireContext(),"Load Review : " + imageUris[0], Toast.LENGTH_LONG).show()
+        Toast("Load Review : " + imageUris[0],requireContext())
 
         recyclerView = binding.recyclerViewSelectedImages
         recyclerView.layoutManager = GridLayoutManager(requireContext(),3)
@@ -84,6 +89,7 @@ class PostReview : Fragment() {
         binding.btnSubmitPost.setOnClickListener {
             // Upload logic to Firebase Storage and Firestore
             uploadImagesToStorageAndSavePost()
+
         }
     }
 
@@ -139,7 +145,7 @@ class PostReview : Fragment() {
                         }
                     }
                     .addOnFailureListener { e ->
-                        Toast.makeText(context, "Error uploading image: $e", Toast.LENGTH_SHORT).show()
+                        Toast("Error uploading image: $e",requireContext())
                     }
             }
         }
@@ -149,6 +155,7 @@ class PostReview : Fragment() {
         post: Post, // Assuming you have a Post model class
         imageUrls: List<String>
     ) {
+        val username = getUsernameFromPreferences()
         // Get a reference to the "posts" collection in Firestore
         val postCollection = FirebaseFirestore.getInstance().collection("posts")
 
@@ -157,6 +164,7 @@ class PostReview : Fragment() {
 
         // Set the post data with image references
         val postData = hashMapOf(
+            "username" to getUsernameFromPreferences(),
             "title" to post.title,
             "description" to post.description,
             "imageUrls" to imageUrls, // Store the list of image URLs
@@ -166,14 +174,19 @@ class PostReview : Fragment() {
         // Upload the post data to Firestore
         newPostDoc.set(postData)
             .addOnSuccessListener {
-                Toast.makeText(context, "Post uploaded successfully!", Toast.LENGTH_SHORT).show()
+                Toast( "Post uploaded successfully!",requireContext())
+                requireActivity().finish()
                 // Navigate back or perform any other action after upload
             }
             .addOnFailureListener { e ->
-                Toast.makeText(context, "Error uploading post: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast("Error uploading post: ${e.message}",requireContext())
             }
     }
 
+    private fun getUsernameFromPreferences(): String {
+        val sharedPref = requireActivity().getSharedPreferences("UserPref", MODE_PRIVATE)
+        return sharedPref.getString("username", "") ?: "" // Return username or empty string if not found
+    }
 
 
 }
@@ -202,10 +215,14 @@ class ImageAdapter(private val imageUris: MutableList<Uri>) : RecyclerView.Adapt
         }
     }
 
+
+
     override fun getItemCount(): Int {
         return imageUris.size
     }
 }
+
+
 
 class ImageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     val imageView: ImageView = view.findViewById(R.id.image_view)

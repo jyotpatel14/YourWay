@@ -1,72 +1,141 @@
 package com.example.yourway.userprofile
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.Fragment
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.viewpager2.widget.ViewPager2
 import com.example.yourway.R
-import com.example.yourway.Toast
 import com.google.firebase.firestore.FirebaseFirestore
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CircleCrop // For circular cropping
+import com.example.yourway.Toast
+import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.io.IOException
-import java.net.URL
 
 class DisplayUserProfile : Fragment() {
 
-    private lateinit var tvUsername: TextView
-    private lateinit var ivProfileImage: ImageView
-    private lateinit var tvDisplayName: TextView
-    private lateinit var tvBio: TextView
-    private lateinit var tvLink: TextView
-    private lateinit var ivLinkIcon: ImageView
+    private lateinit var sharedPreferencesHelper: SharedPreferencesHelper
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
-    private var username: String? = null
-    private lateinit var email: String
+    // Views
+    private lateinit var usernameTextView: TextView
+    private lateinit var displayNameTextView: TextView
+    private lateinit var bioTextView: TextView
+    private lateinit var linkTextView: TextView
+    private lateinit var profileImageView: ImageView
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
 
-        // Retrieve the email from the arguments
-        email = arguments?.getString("email") ?: return // Return if email is null
-
-        // Fetch username by email using coroutines
-        lifecycleScope.launch {
-            // Attempt to get the username by email
-            val user = getUsernameByEmail(email) // Pass the email here
-            if (user != null) {
-                username = user
-                // Fetch user data once username is retrieved
-                fetchUserData()
-                Toast( "Username: $username", requireContext())
-            } else {
-                println("No Username found for the given email.")
-                Toast(  "No username found for this $email", requireContext())
-            }
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        val view = inflater.inflate(R.layout.fragment_display_user_profile, container, false)
+        return inflater.inflate(R.layout.fragment_display_user_profile, container, false)
+    }
 
-        tvUsername = view.findViewById(R.id.tv_display_profile_username)
-        ivProfileImage = view.findViewById(R.id.iv_display_profile_profileImage)
-        tvDisplayName = view.findViewById(R.id.tv_display_profile_displayName)
-        tvBio = view.findViewById(R.id.tv_display_profile_bio)
-        tvLink = view.findViewById(R.id.tv_display_profile_link)
-        ivLinkIcon = view.findViewById(R.id.iv_display_profile_linkIcon)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        return view
+        // Initialize SharedPreferencesHelper
+        sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
+
+        // Initialize Views
+        usernameTextView = view.findViewById(R.id.tv_display_profile_username)
+        displayNameTextView = view.findViewById(R.id.tv_display_profile_displayName)
+        bioTextView = view.findViewById(R.id.tv_display_profile_bio)
+        linkTextView = view.findViewById(R.id.tv_display_profile_link)
+        profileImageView = view.findViewById(R.id.iv_display_profile_profileImage)
+
+        // Initialize SwipeRefreshLayout
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout_display_profile)
+
+        // Get email from arguments
+        val email = arguments?.getString("email") ?: return
+
+        // Load user profile from SharedPreferences if available
+        if (sharedPreferencesHelper.isUserProfileAvailable()) {
+            loadUserProfileFromPreferences()
+        } else {
+            // Launch coroutine to fetch user profile
+            CoroutineScope(Dispatchers.Main).launch {
+                fetchUserProfileFromDatabase(email)
+            }
+        }
+
+        // Set up SwipeRefreshLayout listener
+        swipeRefreshLayout.setOnRefreshListener {
+            // On refresh, fetch the latest user profile data and update SharedPreferences
+            CoroutineScope(Dispatchers.Main).launch {
+                fetchUserProfileFromDatabase(email)
+                swipeRefreshLayout.isRefreshing = false // Stop refresh animation
+            }
+        }
+    }
+
+    private fun loadUserProfileFromPreferences() {
+        val userProfile = sharedPreferencesHelper.getUserProfile()
+        if (userProfile != null) {
+            // Update views with user profile data
+            usernameTextView.text = userProfile.username
+            displayNameTextView.text = userProfile.displayName
+            bioTextView.text = userProfile.bio
+            linkTextView.text = userProfile.link
+
+            // Load image using Glide and make it round
+            Glide.with(this)
+                .load(userProfile.imgSrc)
+                .placeholder(R.drawable.placeholder_image) // Placeholder image
+                .transform(CircleCrop()) // Make image round
+                .into(profileImageView)
+        }
+    }
+
+    private suspend fun fetchUserProfileFromDatabase(email: String) {
+        val username = getUsernameByEmail(email)
+        if (username == null) {
+            Toast("Username not found for email", requireContext())
+            return
+        }
+
+        val db = FirebaseFirestore.getInstance()
+        val docRef = db.collection("users").document(username)
+
+        // Add a real-time listener to the document
+        docRef.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+            if (firebaseFirestoreException != null) {
+                // Handle error
+                Toast("Exception: ${firebaseFirestoreException.message}", requireContext())
+                return@addSnapshotListener
+            }
+
+            if (documentSnapshot != null && documentSnapshot.exists()) {
+                // Extract data from document
+                val userProfile = UserProfile(
+                    username = documentSnapshot.id,
+                    displayName = documentSnapshot.getString("displayName") ?: "",
+                    bio = documentSnapshot.getString("bio") ?: "",
+                    link = documentSnapshot.getString("link") ?: "",
+                    imgSrc = documentSnapshot.getString("imageSrc") ?: ""
+                )
+
+                // Save the new data to SharedPreferences
+                sharedPreferencesHelper.saveUserProfile(userProfile)
+
+                // Update the UI with the new data
+                loadUserProfileFromPreferences()
+            } else {
+                // Handle the case where the document doesn't exist
+                Toast("Profile not found", requireContext())
+            }
+        }
     }
 
     private suspend fun getUsernameByEmail(email: String): String? {
@@ -76,7 +145,6 @@ class DisplayUserProfile : Fragment() {
             // Reference to the "usernametoemail" collection
             val document = db.collection("usernametoemail").document(email).get().await()
             if (document.exists()) {
-                // Check if the "username" field exists in the document
                 document.getString("username")
             } else {
                 println("Document does not exist for this email")
@@ -85,76 +153,6 @@ class DisplayUserProfile : Fragment() {
         } catch (e: Exception) {
             println("Error retrieving document: ${e.message}")
             null // Return null on failure
-        }
-    }
-
-    private fun fetchUserData() {
-        // Fetch the user's basic profile data using the retrieved username
-        username?.let {
-            loadUserProfileBasicData(it) { userProfileBasicData ->
-                if (userProfileBasicData != null) {
-                    // Populate UI with the user data
-                    tvUsername.text = username
-                    tvDisplayName.text = userProfileBasicData.displayName
-                    tvBio.text = userProfileBasicData.bio
-                    tvLink.text = userProfileBasicData.link
-                    loadProfileImageView(userProfileBasicData.imageSrc)
-                } else {
-                    Toast("Unable to load profile", requireContext())
-                }
-            }
-        }
-    }
-
-    private fun loadProfileImageView(imageSrc: String?) {
-        lifecycleScope.launch {
-            try {
-                val bitmap = loadBitmapFromUrl(imageSrc)
-                if (bitmap != null) {
-                    ivProfileImage.setImageBitmap(bitmap)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private fun loadBitmapFromUrl(urlString: String?): Bitmap? {
-        return try {
-            val url = URL(urlString)
-            BitmapFactory.decodeStream(url.openConnection().getInputStream())
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    private fun loadUserProfileBasicData(
-        username: String,
-        callback: (UserProfileBasicData?) -> Unit
-    ) {
-        val db = FirebaseFirestore.getInstance()
-        val usersCollection = db.collection("users")
-
-        usersCollection.document(username).get().addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val document = task.result
-                if (document.exists()) {
-                    val userData = document.data
-                    val userProfileBasicData = UserProfileBasicData(
-                        displayName = userData?.get("displayName") as? String,
-                        bio = userData?.get("bio") as? String,
-                        link = userData?.get("link") as? String,
-                        email = userData?.get("email") as? String,
-                        imageSrc = userData?.get("imageSrc") as? String
-                    )
-                    callback(userProfileBasicData)
-                } else {
-                    callback(null)
-                }
-            } else {
-                callback(null)
-            }
         }
     }
 }

@@ -10,10 +10,14 @@ import android.widget.EditText
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.yourway.BaseActivity
 import com.example.yourway.R
 import com.example.yourway.Toast
 import com.example.yourway.userprofile.CreateUserProfileActivity
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class AuthenticationActivity : AppCompatActivity() {
     private lateinit var ivAuthLogo : ImageView
@@ -27,6 +31,8 @@ class AuthenticationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_authentication)
+
+        checkIfUserIsLoggedIn()
 
         ivAuthLogo = findViewById(R.id.iv_auth_logo)
         etAuthEmail = findViewById(R.id.et_auth_email)
@@ -58,6 +64,9 @@ class AuthenticationActivity : AppCompatActivity() {
 
             userData.signIn { signInResult ->
                 if (signInResult == UserData.SIGN_IN_SUCCESS) {
+
+                    saveUserDataToPreferences(email,password,"success")
+
                     val intent = Intent(this@AuthenticationActivity, BaseActivity::class.java)
                     intent.putExtra("email",email)
 
@@ -112,6 +121,61 @@ class AuthenticationActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    private fun saveUserDataToPreferences(email: String, password: String, status: String) {
+        var username :String
+
+        lifecycleScope.launch {
+            // Attempt to get the username by email
+            val user = getUsernameByEmail(email) // Pass the email here
+            if (user != null) {
+                username = user
+                val sharedPref = getSharedPreferences("UserPref", MODE_PRIVATE)
+                val editor = sharedPref.edit()
+                editor.putString("email", email)
+                editor.putString("password", password)
+                editor.putString("status", status)
+                editor.putString("username",username)
+                editor.apply() // Save changes asynchronously
+                Toast( "Username on Signin: $username", applicationContext)
+            } else {
+                println("No Username found for the given email.")
+                Toast(  "No username found for this $email", applicationContext)
+            }
+        }
+    }
+    private suspend fun getUsernameByEmail(email: String): String? {
+        val db = FirebaseFirestore.getInstance()
+
+        return try {
+            // Reference to the "usernametoemail" collection
+            val document = db.collection("usernametoemail").document(email).get().await()
+            if (document.exists()) {
+                // Check if the "username" field exists in the document
+                document.getString("username")
+            } else {
+                println("Document does not exist for this email")
+                null // Document does not exist
+            }
+        } catch (e: Exception) {
+            println("Error retrieving document: ${e.message}")
+            null // Return null on failure
+        }
+    }
+
+    private fun checkIfUserIsLoggedIn() {
+        val sharedPref = getSharedPreferences("UserPref", MODE_PRIVATE)
+        val status = sharedPref.getString("status", null)
+        val email = sharedPref.getString("email", null)
+
+        if (status == "success" && email != null) {
+            // User is already logged in, navigate to BaseActivity
+            val intent = Intent(this@AuthenticationActivity, BaseActivity::class.java)
+            intent.putExtra("email", email)
+            startActivity(intent)
+            finish() // Close the AuthenticationActivity
         }
     }
 

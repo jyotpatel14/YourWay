@@ -39,5 +39,7 @@
             android:layout_height="wrap_content"
             android:text="Submit Post" />
 
+
+
     </LinearLayout>
 </ScrollView>

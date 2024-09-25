@@ -50,7 +50,7 @@ class BasicPost : Fragment() {
             // Open PostReviewFragment and pass the post data
             val fragment = PostReview.newInstance(post)
             parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, fragment)
+                .replace(R.id.fcv_addpost, fragment)
                 .addToBackStack(null)
                 .commit()
         }

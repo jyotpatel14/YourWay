@@ -3,6 +3,7 @@ package com.example.yourway.userprofile
 import com.example.yourway.Toast
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context.MODE_PRIVATE
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -222,6 +223,7 @@ class CreateUserProfile : Fragment() {
         userDoc.update(userData as Map<String, Any>)
             .addOnSuccessListener {
                 setUsernameToEmail(email,username)
+                saveUsernameToPreferences(username)
                 Toast("Profile updated successfully", requireContext())
             }
             .addOnFailureListener { e ->
@@ -253,12 +255,21 @@ class CreateUserProfile : Fragment() {
         userDoc.set(userData)
             .addOnSuccessListener {
                 setUsernameToEmail(email,username)
+                saveUsernameToPreferences(username)
                 Toast("Profile updated successfully", requireContext())
             }
             .addOnFailureListener { e ->
                 Log.e("UserProfileUpdateError", e.message!!)
                 Toast("Error updating profile", requireContext())
             }
+    }
+
+    private fun saveUsernameToPreferences(username: String) {
+        val sharedPref = requireContext().getSharedPreferences("UserPref", MODE_PRIVATE)
+        val editor = sharedPref.edit()
+        editor.putString("username", username)
+
+        editor.apply() // Save changes asynchronously
     }
 
     private fun loadProfileImageView(imageSrc: String?) {

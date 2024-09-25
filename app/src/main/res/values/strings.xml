@@ -1,5 +1,11 @@
 <resources>
     <string name="app_name">YourWay</string>
-    <!-- TODO: Remove or change this placeholder text -->
+
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string-array name="exploreSpinner">
+        <item>People</item>
+        <item>Post</item>
+        <item>Forum</item>
+    </string-array>
 </resources>

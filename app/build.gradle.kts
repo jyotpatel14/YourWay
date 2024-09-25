@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("com.google.gms.google-services")
+    id("kotlin-android")
+    id("kotlin-kapt")
 }
 
 android {
@@ -52,6 +54,7 @@ dependencies {
     implementation(libs.geofire.android)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.androidx.swiperefreshlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -59,4 +62,9 @@ dependencies {
     implementation ("com.github.Drjacky:ImagePicker:2.3.22")
     implementation(libs.firebase.messaging)
     implementation("com.google.android.material:material:1.12.0")
+
+
+    implementation("com.github.bumptech.glide:glide:4.14.2")
+    kapt("com.github.bumptech.glide:compiler:4.14.2")
+
 }

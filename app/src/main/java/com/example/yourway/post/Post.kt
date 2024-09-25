@@ -7,6 +7,7 @@ import android.os.Parcelable
 
 @SuppressLint("ParcelCreator")
 data class Post(
+    var username : String = "",
     var title: String = "",
     var description: String = "",
     var imageUrls: MutableList<Uri> = mutableListOf()
