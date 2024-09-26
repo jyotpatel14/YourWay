@@ -30,6 +30,7 @@ class PostAdapter(
                     viewPager.adapter = imageAdapter
 
 
+
                 } else {
                     viewPager.visibility = View.GONE
                     singleImageView.visibility = View.VISIBLE

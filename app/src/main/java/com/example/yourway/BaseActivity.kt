@@ -10,6 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
+import com.example.yourway.chat.ChatBaseFragment
 import com.example.yourway.explore.ExploreFragment
 import com.example.yourway.userprofile.DisplayUserProfile
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -58,7 +59,7 @@ class BaseActivity : AppCompatActivity() {
                 }
 
                 R.id.messages -> {
-//                    setFragment(Contacts())
+                    setFragment(ChatBaseFragment())
                     return@setOnItemSelectedListener true
                 }
 

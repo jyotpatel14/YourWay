@@ -14,7 +14,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CircleCrop // For circular cropping
 import com.example.yourway.Toast
+import com.example.yourway.userprofile.postimagegrid.UserPostImageGridRVFragment
+import com.example.yourway.userprofile.postimagegrid.VPAdapter
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,7 +35,9 @@ class DisplayUserProfile : Fragment() {
     private lateinit var linkTextView: TextView
     private lateinit var profileImageView: ImageView
 
-
+    private lateinit var tabLayout : TabLayout
+    private lateinit var viewPager : ViewPager2
+    private lateinit var vpAdapter: VPAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,6 +72,7 @@ class DisplayUserProfile : Fragment() {
             // Launch coroutine to fetch user profile
             CoroutineScope(Dispatchers.Main).launch {
                 fetchUserProfileFromDatabase(email)
+                setupVP(view,email)
             }
         }
 
@@ -75,9 +81,34 @@ class DisplayUserProfile : Fragment() {
             // On refresh, fetch the latest user profile data and update SharedPreferences
             CoroutineScope(Dispatchers.Main).launch {
                 fetchUserProfileFromDatabase(email)
+                setupVP(view,email)
                 swipeRefreshLayout.isRefreshing = false // Stop refresh animation
             }
         }
+
+        CoroutineScope(Dispatchers.Main).launch {
+            setupVP(view,email)
+        }
+
+    }
+
+    private suspend fun setupVP(view: View,email: String) {
+
+        val username = getUsernameByEmail(email)
+        tabLayout = view.findViewById(R.id.tabLayout_profile)
+        viewPager = view.findViewById(R.id.viewPager_profile)
+
+
+        vpAdapter = VPAdapter(childFragmentManager,lifecycle)
+        vpAdapter.addFragment(UserPostImageGridRVFragment.newInstance(username.toString()),"Posts")
+//        vpAdapter.addFragment(Services(),"Services")
+//        vpAdapter.addFragment(Business(),"Business")
+
+        viewPager.adapter = vpAdapter
+
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = vpAdapter.getPageTitle(position)
+        }.attach()
     }
 
     private fun loadUserProfileFromPreferences() {

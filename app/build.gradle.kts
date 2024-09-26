@@ -63,8 +63,10 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation("com.google.android.material:material:1.12.0")
 
-
     implementation("com.github.bumptech.glide:glide:4.14.2")
     kapt("com.github.bumptech.glide:compiler:4.14.2")
+
+    implementation("com.mikepenz:iconics-core:5.3.1") // or the latest version
+    implementation("com.mikepenz:iconics-views:5.3.1")
 
 }

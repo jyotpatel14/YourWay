@@ -15,9 +15,9 @@ class UserListAdapter(private val users: MutableList<User>) : RecyclerView.Adapt
 
     inner class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        private val tvUsername: TextView = itemView.findViewById(R.id.tvExpUlUsername)
-        private val tvDisplayName: TextView = itemView.findViewById(R.id.tvExpUlDisplayName)
-        private val ivProfileImage: ImageView = itemView.findViewById(R.id.ivExpUlProfileImage)
+        private val tvUsername: TextView = itemView.findViewById(R.id.tvChatUlLastMessage)
+        private val tvDisplayName: TextView = itemView.findViewById(R.id.tvChatUlDisplayName)
+        private val ivProfileImage: ImageView = itemView.findViewById(R.id.ivChatUlProfileImage)
 
         fun bind(user: User) {
             tvUsername.text = user.username
