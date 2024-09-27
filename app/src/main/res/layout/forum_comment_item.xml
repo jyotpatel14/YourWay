@@ -1,19 +1,39 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_height="wrap_content">
 
     <TextView
         android:id="@+id/tv_comment_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Comment Content" />
+        android:text="Comment content"/>
 
-    <TextView
-        android:id="@+id/tv_comment_upvote_count"
+    <!-- Like Button and Count -->
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Upvotes: 0" />
+        android:gravity="center">
+
+        <ImageButton
+            android:id="@+id/btn_comment_like"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_thumb_up_alt_24"
+            android:contentDescription="Upvote"
+            android:background="?attr/selectableItemBackground"
+            />
+
+        <TextView
+            android:id="@+id/tv_comment_like_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:layout_margin="8dp"/>
+
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/tv_comment_reply_button"
@@ -21,6 +41,7 @@
         android:layout_height="wrap_content"
         android:text="Reply" />
 
+    <!-- Hidden Reply Layout -->
     <LinearLayout
         android:id="@+id/tv_comment_reply_layout"
         android:layout_width="match_parent"
@@ -28,17 +49,16 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <!-- EditText and Send button for replies -->
         <EditText
-            android:id="@+id/tv_comment_reply_edit_text"
-            android:layout_width="wrap_content"
+            android:id="@+id/et_reply_input"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Write a reply" />
 
         <Button
-            android:id="@+id/tv_comment_send_reply_button"
+            android:id="@+id/btn_send_reply"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send" />
+            android:text="Send Reply" />
     </LinearLayout>
 </LinearLayout>

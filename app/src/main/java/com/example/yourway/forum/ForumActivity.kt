@@ -28,6 +28,7 @@ class ForumActivity : AppCompatActivity() {
         bottomNavigationView = findViewById(R.id.bnv_forum)
 
 
+
         bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.forum -> {
@@ -43,6 +44,8 @@ class ForumActivity : AppCompatActivity() {
             }
             false
         }
+        bottomNavigationView.selectedItemId = R.id.forum
+
     }
 
     private fun setFragment(fragment: Fragment) {

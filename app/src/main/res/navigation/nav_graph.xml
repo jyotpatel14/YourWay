@@ -12,9 +12,7 @@
         android:name="com.example.yourway.forum.ForumListFragment"
         android:label="Forum List"
         tools:layout="@layout/fragment_forum_list">
-        <action
-            android:id="@+id/action_forumListToForumDetail"
-            app:destination="@id/forumDetailFragment" />
+
     </fragment>
 
     <fragment
@@ -22,4 +20,9 @@
         android:name="com.example.yourway.forum.ForumDetailFragment"
         android:label="Forum Details"
         tools:layout="@layout/fragment_forum_detail" />
+    <fragment
+        android:id="@+id/createForumFragment"
+        android:name="com.example.yourway.forum.CreateForumFragment"
+        android:label="fragment_create_forum"
+        tools:layout="@layout/fragment_create_forum" />
 </navigation>

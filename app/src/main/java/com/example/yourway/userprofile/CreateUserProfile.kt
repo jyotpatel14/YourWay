@@ -4,6 +4,7 @@ import com.example.yourway.Toast
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context.MODE_PRIVATE
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -24,6 +25,7 @@ import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
+import com.example.yourway.BaseActivity
 import com.example.yourway.R
 import com.github.drjacky.imagepicker.ImagePicker
 import com.github.drjacky.imagepicker.constant.ImageProvider
@@ -45,6 +47,7 @@ class CreateUserProfile : Fragment() {
     private lateinit var etProfileBio: EditText
     private lateinit var etProfileLink: EditText
     private lateinit var btnProfileUpdateProfile: Button
+    private lateinit var btnfinish : Button
 
     private lateinit var btnProfileSelectImage: Button
     private var imageUri: Uri? = null
@@ -76,9 +79,16 @@ class CreateUserProfile : Fragment() {
         btnProfileSelectImage = view.findViewById(R.id.btn_profile_select_profile_image)
         ivProfileImage = view.findViewById(R.id.iv_profile_image)
         btnProfileUpdateProfile = view.findViewById(R.id.btn_profile_update_profile)
+        btnfinish = view.findViewById(R.id.btn_profile_finish)
 
         btnEditProfileUsername.setOnClickListener {
             showUsernameUpdatePopupWindow()
+        }
+
+        btnfinish.setOnClickListener {
+            val intent = Intent(activity,BaseActivity::class.java)
+            requireContext().startActivity(intent)
+            requireActivity().finish()
         }
 
         btnProfileSelectImage.setOnClickListener {
@@ -257,6 +267,8 @@ class CreateUserProfile : Fragment() {
                 setUsernameToEmail(email,username)
                 saveUsernameToPreferences(username)
                 Toast("Profile updated successfully", requireContext())
+                btnfinish.visibility = View.VISIBLE
+
             }
             .addOnFailureListener { e ->
                 Log.e("UserProfileUpdateError", e.message!!)

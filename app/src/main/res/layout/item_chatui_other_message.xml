@@ -3,12 +3,22 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@drawable/rounded_edittext"
-    android:backgroundTint="#D8D8D8"
-    android:padding="10dp"
-    android:layout_margin="10dp"
-    android:layout_gravity="bottom"
+    android:paddingRight="70dp"
+    android:layout_margin="5dp"
+
     >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@drawable/rounded_edittext"
+        android:backgroundTint="#D8D8D8"
+        android:padding="10dp"
+        >
+
+
 
     <TextView
         android:id="@+id/tv_chatui_other_displayName"
@@ -41,5 +51,5 @@
         app:layout_constraintLeft_toLeftOf="parent"
         />
 
-
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
