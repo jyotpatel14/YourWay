@@ -1,0 +1,44 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_comment_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Comment Content" />
+
+    <TextView
+        android:id="@+id/tv_comment_upvote_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upvotes: 0" />
+
+    <Button
+        android:id="@+id/tv_comment_reply_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Reply" />
+
+    <LinearLayout
+        android:id="@+id/tv_comment_reply_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- EditText and Send button for replies -->
+        <EditText
+            android:id="@+id/tv_comment_reply_edit_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Write a reply" />
+
+        <Button
+            android:id="@+id/tv_comment_send_reply_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send" />
+    </LinearLayout>
+</LinearLayout>

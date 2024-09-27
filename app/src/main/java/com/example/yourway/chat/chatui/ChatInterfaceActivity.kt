@@ -1,6 +1,12 @@
 package com.example.yourway.chat.chatui
 
+import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -8,10 +14,11 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.FragmentContainerView
 import com.example.yourway.R
+import com.google.firebase.firestore.FirebaseFirestore
+
+
 class ChatInterfaceActivity : AppCompatActivity() {
 
     private lateinit var toolbar: Toolbar
@@ -23,6 +30,7 @@ class ChatInterfaceActivity : AppCompatActivity() {
     private lateinit var ibtnCancel: ImageButton
     private lateinit var ibtnSend: ImageButton
     private lateinit var chatId: String
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,9 +47,12 @@ class ChatInterfaceActivity : AppCompatActivity() {
         ibtnCancel = findViewById(R.id.ibtn_chatui_cancel)
         ibtnSend = findViewById(R.id.ibtn_chatui_send)
 
+
         // Retrieve chatId from the intent
         chatId = intent.getStringExtra("chatId") ?: throw IllegalArgumentException("Chat ID not provided")
-        tvChatName.text = chatId
+        getChatDisplayName(chatId) { displayname ->
+            tvChatName.text = displayname
+        }
 
         setupToolbar()
         loadMessagesFragment()
@@ -55,29 +66,54 @@ class ChatInterfaceActivity : AppCompatActivity() {
         ibtnAttach.setOnClickListener {
             selectMedia()
         }
+
+
     }
 
     private fun setupToolbar() {
-        setSupportActionBar(toolbar)
+//        setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         ivBack.setOnClickListener {
             finish() // Return to previous activity
         }
     }
 
+    private fun getChatDisplayName(chatId: String, callback: (String?) -> Unit) {
+        val firestore = FirebaseFirestore.getInstance()
+
+        firestore.collection("chats").document(chatId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // Retrieve either groupName or displayName
+                    val displayName = document.getString("groupName") ?: document.getString("displayName")
+
+                    // Return the retrieved value through the callback
+                    callback(displayName)
+                } else {
+                    Log.d("getChatDisplayName", "No such document")
+                    callback(null)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("getChatDisplayName", "Error getting document: ", e)
+                callback(null)
+            }
+    }
+
     private fun loadMessagesFragment() {
         // Load the MessagesFragment
-//        supportFragmentManager.beginTransaction()
-//            .replace(R.id.fcv_chatui, MessagesFragment.newInstance(chatId))
-//            .commit()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fcv_chatui, MessagesFragment.newInstance(chatId))
+            .commit()
     }
 
     private fun sendMessage() {
         val messageText = etMessage.text.toString()
         if (messageText.isNotEmpty()) {
             // Call the fragment's send message function
-//            (supportFragmentManager.findFragmentById(R.id.fcv_chatui) as? MessagesFragment)?.sendMessage(messageText)
-//            etMessage.text.clear() // Clear the input after sending
+            (supportFragmentManager.findFragmentById(R.id.fcv_chatui) as? MessagesFragment)?.sendMessage(messageText)
+            etMessage.text.clear() // Clear the input after sending
         }
     }
 

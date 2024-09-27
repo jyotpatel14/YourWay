@@ -3,11 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/displayUserProfile">
+    app:startDestination="@id/forumListFragment">
+
+
 
     <fragment
-        android:id="@+id/displayUserProfile"
-        android:name="com.example.yourway.userprofile.DisplayUserProfile"
-        android:label="fragment_display_user_profile"
-        tools:layout="@layout/fragment_display_user_profile" />
+        android:id="@+id/forumListFragment"
+        android:name="com.example.yourway.forum.ForumListFragment"
+        android:label="Forum List"
+        tools:layout="@layout/fragment_forum_list">
+        <action
+            android:id="@+id/action_forumListToForumDetail"
+            app:destination="@id/forumDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/forumDetailFragment"
+        android:name="com.example.yourway.forum.ForumDetailFragment"
+        android:label="Forum Details"
+        tools:layout="@layout/fragment_forum_detail" />
 </navigation>

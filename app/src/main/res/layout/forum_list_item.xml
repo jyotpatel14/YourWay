@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_forumlist_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forum Title" />
+
+    <TextView
+        android:id="@+id/tv_forumlist_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Description" />
+
+    <TextView
+        android:id="@+id/tv_forumlist_upvote_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upvotes: 0" />
+
+    <TextView
+        android:id="@+id/tv_forumlist_downvote_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Downvotes: 0" />
+
+    <Button
+        android:id="@+id/btn_forumlist_expand_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Expand" />
+</LinearLayout>

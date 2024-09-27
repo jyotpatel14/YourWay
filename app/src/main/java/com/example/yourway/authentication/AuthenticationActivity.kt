@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -20,12 +21,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class AuthenticationActivity : AppCompatActivity() {
-    private lateinit var ivAuthLogo : ImageView
-    private lateinit var etAuthEmail : EditText
-    private lateinit var etAuthPassword : EditText
-    private lateinit var ivAuthShowPass :ImageView
-    private lateinit var btnAuthSignUp : Button
-    private lateinit var btnAuthSignIn :Button
+    private lateinit var ivAuthLogo: ImageView
+    private lateinit var etAuthEmail: EditText
+    private lateinit var etAuthPassword: EditText
+    private lateinit var ivAuthShowPass: ImageView
+    private lateinit var btnAuthSignUp: Button
+    private lateinit var btnAuthSignIn: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +42,7 @@ class AuthenticationActivity : AppCompatActivity() {
         btnAuthSignUp = findViewById(R.id.btn_auth_signUp)
         btnAuthSignIn = findViewById(R.id.btn_auth_signIn)
 
-        ivAuthShowPass.setOnClickListener{
+        ivAuthShowPass.setOnClickListener {
             showPasswordTemporarily(etAuthPassword)
         }
 
@@ -65,17 +66,33 @@ class AuthenticationActivity : AppCompatActivity() {
             userData.signIn { signInResult ->
                 if (signInResult == UserData.SIGN_IN_SUCCESS) {
 
-                    saveUserDataToPreferences(email,password,"success")
-
-                    val intent = Intent(this@AuthenticationActivity, BaseActivity::class.java)
-                    intent.putExtra("email",email)
-
-                    startActivity(intent)
-                    finish()
+                    // Call saveUserDataToPreferences and pass a callback
+                    saveUserDataToPreferences(email, password, "success") {
+                        // This block will execute after saving is complete
+                        val intent = Intent(this@AuthenticationActivity, BaseActivity::class.java)
+                        intent.putExtra("email", email)
+                        startActivity(intent)
+                        finish()
+                    }
                 } else {
-                    Toast("Sign-in failed. Please check your credentials.", this)
+
                 }
             }
+
+//            userData.signIn { signInResult ->
+//                if (signInResult == UserData.SIGN_IN_SUCCESS) {
+//
+//                    saveUserDataToPreferences(email, password, "success")
+//
+//                    val intent = Intent(this@AuthenticationActivity, BaseActivity::class.java)
+//                    intent.putExtra("email", email)
+//
+//                    startActivity(intent)
+//                    finish()
+//                } else {
+//                    Toast("Sign-in failed. Please check your credentials.", this)
+//                }
+//            }
         }
 
         btnAuthSignUp.setOnClickListener {
@@ -101,7 +118,7 @@ class AuthenticationActivity : AppCompatActivity() {
                         userData.signIn { signInResult ->
                             if (signInResult == UserData.SIGN_IN_SUCCESS) {
                                 val intent = Intent(this, BaseActivity::class.java)
-                                intent.putExtra("email",email)
+                                intent.putExtra("email", email)
                                 startActivity(intent)
                                 finish()
                             } else {
@@ -109,12 +126,14 @@ class AuthenticationActivity : AppCompatActivity() {
                             }
                         }
                     }
+
                     UserData.NEW_USER -> {
                         val intent = Intent(this, CreateUserProfileActivity::class.java)
-                        intent.putExtra("email",email)
+                        intent.putExtra("email", email)
                         startActivity(intent)
                         finish()
                     }
+
                     UserData.SIGN_IN_FAILED -> {
 
                         Toast("Sign-up failed. Please try again.", this)
@@ -124,36 +143,67 @@ class AuthenticationActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveUserDataToPreferences(email: String, password: String, status: String) {
-        var username :String
+    private fun saveUserDataToPreferences(email: String, password: String, status: String, onComplete: () -> Unit) {
+        val db = FirebaseFirestore.getInstance()
 
-        lifecycleScope.launch {
-            // Attempt to get the username by email
-            val user = getUsernameByEmail(email) // Pass the email here
-            if (user != null) {
-                username = user
-                val sharedPref = getSharedPreferences("UserPref", MODE_PRIVATE)
-                val editor = sharedPref.edit()
-                editor.putString("email", email)
-                editor.putString("password", password)
-                editor.putString("status", status)
-                editor.putString("username",username)
-                editor.apply() // Save changes asynchronously
-                Toast( "Username on Signin: $username", applicationContext)
-            } else {
-                println("No Username found for the given email.")
-                Toast(  "No username found for this $email", applicationContext)
+        // Get the username document using the email
+        db.collection("usernametoemail").document(email).get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val userDocument = task.result
+                    if (userDocument != null && userDocument.exists()) {
+                        val username = userDocument.getString("username") ?: ""
+
+                        // Now get the user data from the "users" collection using the username
+                        db.collection("users").document(username).get()
+                            .addOnCompleteListener { task2 ->
+                                if (task2.isSuccessful) {
+                                    val userDataDocument = task2.result
+                                    if (userDataDocument != null && userDataDocument.exists()) {
+                                        val imageSrc = userDataDocument.getString("imageSrc") ?: ""
+                                        val displayName = userDataDocument.getString("displayName") ?: ""
+
+                                        // Save data to SharedPreferences
+                                        val sharedPref = getSharedPreferences("UserPref", MODE_PRIVATE)
+                                        val editor = sharedPref.edit()
+                                        editor.putString("email", email)
+                                        editor.putString("password", password)
+                                        editor.putString("status", status)
+                                        editor.putString("username", username)
+                                        editor.putString("imageSrc", imageSrc)
+                                        editor.putString("displayName", displayName)
+                                        editor.apply() // Save changes asynchronously
+
+                                        Log.d("saveUserData", "Saved username: $username, imageSrc: $imageSrc, displayName: $displayName")
+
+                                        // Call the completion callback
+                                        onComplete()
+                                    } else {
+                                        Log.e("saveUserData", "No user data document found for username: $username")
+                                    }
+                                } else {
+                                    Log.e("saveUserData", "Error fetching user data document: ", task2.exception)
+                                }
+                            }
+                    } else {
+                        Log.e("saveUserData", "No document found for the email: $email")
+                    }
+                } else {
+                    Log.e("saveUserData", "Error fetching username document: ", task.exception)
+                }
             }
-        }
     }
+
+
     private suspend fun getUsernameByEmail(email: String): String? {
         val db = FirebaseFirestore.getInstance()
 
         return try {
             // Reference to the "usernametoemail" collection
             val document = db.collection("usernametoemail").document(email).get().await()
+
+            // Save changes asynchronously
             if (document.exists()) {
-                // Check if the "username" field exists in the document
                 document.getString("username")
             } else {
                 println("Document does not exist for this email")
@@ -181,11 +231,13 @@ class AuthenticationActivity : AppCompatActivity() {
 
     private fun showPasswordTemporarily(passwordEditText: EditText) {
         // Show the password
-        passwordEditText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        passwordEditText.inputType =
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
 
         // Revert back to hidden password after 3 seconds
         Handler(Looper.getMainLooper()).postDelayed({
-            passwordEditText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            passwordEditText.inputType =
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             passwordEditText.setSelection(passwordEditText.text.length) // Maintain cursor position
         }, 3000)  // 3000 milliseconds = 3 seconds
     }

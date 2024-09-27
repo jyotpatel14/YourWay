@@ -68,11 +68,12 @@ class DisplayUserProfile : Fragment() {
         // Load user profile from SharedPreferences if available
         if (sharedPreferencesHelper.isUserProfileAvailable()) {
             loadUserProfileFromPreferences()
+            setupVP(view, email)  // Call setupVP here
         } else {
             // Launch coroutine to fetch user profile
             CoroutineScope(Dispatchers.Main).launch {
                 fetchUserProfileFromDatabase(email)
-                setupVP(view,email)
+                setupVP(view, email)
             }
         }
 
@@ -81,20 +82,17 @@ class DisplayUserProfile : Fragment() {
             // On refresh, fetch the latest user profile data and update SharedPreferences
             CoroutineScope(Dispatchers.Main).launch {
                 fetchUserProfileFromDatabase(email)
-                setupVP(view,email)
                 swipeRefreshLayout.isRefreshing = false // Stop refresh animation
             }
         }
-
-        CoroutineScope(Dispatchers.Main).launch {
-            setupVP(view,email)
-        }
-
     }
 
-    private suspend fun setupVP(view: View,email: String) {
+    private fun setupVP(view: View,email: String) {
+        val sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
+        val userProfile = sharedPreferencesHelper.getUserProfile()
 
-        val username = getUsernameByEmail(email)
+
+        val username = userProfile?.username
         tabLayout = view.findViewById(R.id.tabLayout_profile)
         viewPager = view.findViewById(R.id.viewPager_profile)
 

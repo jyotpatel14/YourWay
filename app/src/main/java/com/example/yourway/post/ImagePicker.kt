@@ -53,16 +53,19 @@ class ImagePickerFragment(private val onImagesPicked: (MutableList<Uri>) -> Unit
 
         binding.btnSelectImages.setOnClickListener {
 
-            val intent = ImagePicker.with(requireActivity())
-                .provider(ImageProvider.GALLERY) // Allows both camera and gallery
-                .setMultipleAllowed(true)
-                .crop()
-                .cropFreeStyle()
-                .galleryMimeTypes(
-                    mimeTypes = arrayOf("image/png", "image/jpg", "image/jpeg")
-                )
-                .createIntent()
+                val intent = ImagePicker.with(requireActivity())
+                    .provider(ImageProvider.GALLERY) // Allows both camera and gallery
+                    .setMultipleAllowed(true)
+                    .crop()
+                    .cropFreeStyle()
+                    .galleryMimeTypes(
+                        mimeTypes = arrayOf("image/png", "image/jpg", "image/jpeg")
+                    )
+
+                    .createIntent()
             imagePickerLauncher.launch(intent)
+
+
         }
 
         binding.btnDone.setOnClickListener {
@@ -72,24 +75,29 @@ class ImagePickerFragment(private val onImagesPicked: (MutableList<Uri>) -> Unit
         }
     }
 
+
     // Activity result launcher for image picker
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { res ->
         if (res.resultCode == Activity.RESULT_OK) {
+
             // Handle successful image selection
             val clipData = res.data?.clipData
+            val data = res.data?.data
 //            val uriList = mutableListOf<Uri>()
 
             uriList = res.data?.getParcelableArrayListExtra("extra.multiple_file_path")!!
 
+            if (data != null){
+                Toast.makeText(requireContext(), "data ......", Toast.LENGTH_SHORT).show()
+                uriList.add(data)
+            }
 
             if (clipData != null) {
                 for (i in 0 until clipData.itemCount) {
                     uriList.add(clipData.getItemAt(i).uri)
                 }
-            } else {
-                res.data?.data?.let { uriList.add(it) }
             }
 
             // Process and display the images
