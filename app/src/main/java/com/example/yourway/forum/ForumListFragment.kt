@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +22,7 @@ class ForumListFragment : Fragment() {
     private lateinit var forumRecyclerView: RecyclerView
     private lateinit var forumAdapter: ForumAdapter
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var buttonAddForum: Button
     private val forumList = mutableListOf<Forum>()
 
     private var lastVisible: DocumentSnapshot? = null
@@ -37,6 +39,17 @@ class ForumListFragment : Fragment() {
         forumRecyclerView = view.findViewById(R.id.rv_forum_list)
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout_forum_list)
         forumRecyclerView.layoutManager = LinearLayoutManager(context)
+        buttonAddForum = view.findViewById(R.id.btn_forumlist_add_forum)
+
+        buttonAddForum.setOnClickListener {
+            val fragment = CreateForumFragment()
+
+            // Use the FragmentManager to replace the fragment
+            val transaction = parentFragmentManager.beginTransaction()
+            transaction.replace(R.id.fcv_forum, fragment)
+            transaction.addToBackStack(null) // Optional: adds the transaction to the back stack
+            transaction.commit()
+        }
 
         forumAdapter = ForumAdapter(forumList) { forumId ->
             navigateToForumDetail(forumId)

@@ -19,6 +19,7 @@ class PostAdapter(
     inner class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val viewPager: ViewPager2 = itemView.findViewById(R.id.imageViewPager)
         private val singleImageView: ImageView = itemView.findViewById(R.id.singleImageView)
+        private val ivItemType: ImageView = itemView.findViewById(R.id.iv_post_grid_item_type)
 
         fun bind(post: Post) {
             // If the post has multiple images, use ViewPager
@@ -28,6 +29,11 @@ class PostAdapter(
                     singleImageView.visibility = View.GONE
                     val imageAdapter = ImagePagerAdapter(post.imageUrls, post, this@PostAdapter)
                     viewPager.adapter = imageAdapter
+
+                    Glide.with(itemView.context)
+                        .load(R.drawable.baseline_filter_none_24)
+                        .into(ivItemType)
+                    ivItemType.visibility = View.VISIBLE
 
 
 

@@ -9,10 +9,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.bumptech.glide.Glide
 import com.example.yourway.R
 import com.example.yourway.Toast
 import com.example.yourway.userprofile.SharedPreferencesHelper
@@ -35,7 +37,7 @@ class ForumDetailFragment : Fragment() {
     private lateinit var txtForumDescription: TextView
     private lateinit var txtCreatedAt: TextView
     private lateinit var editTextComment: EditText
-    private lateinit var btnSendComment: Button
+    private lateinit var btnSendComment: ImageButton
 
     // Upvote/Downvote Views
     private lateinit var btnUpvote: ImageButton
@@ -45,6 +47,10 @@ class ForumDetailFragment : Fragment() {
 
     // SwipeRefreshLayout
     private lateinit var swipeRefresh: SwipeRefreshLayout
+
+    private lateinit var upvoteLinearLayout: LinearLayout
+    private lateinit var downvoteLinearLayout: LinearLayout
+
 
     private var upvoted: Boolean = false
     private var downvoted: Boolean = false
@@ -78,6 +84,10 @@ class ForumDetailFragment : Fragment() {
         btnSendComment = view.findViewById(R.id.btn_forumdetail_main_send)
 
         txtForumTitle = view.findViewById(R.id.tv_forumdetail_forum_title)
+
+        upvoteLinearLayout = view.findViewById(R.id.ll_forumDetail_upvote)
+        downvoteLinearLayout = view.findViewById(R.id.ll_forumDetail_downvote)
+
 
 
         // Upvote/Downvote buttons
@@ -125,7 +135,7 @@ class ForumDetailFragment : Fragment() {
         }
 
         // Upvote button click
-        btnUpvote.setOnClickListener {
+        upvoteLinearLayout.setOnClickListener {
             if (!upvoted) {
                 upvoted = true
                 upvoteCount++
@@ -134,7 +144,7 @@ class ForumDetailFragment : Fragment() {
         }
 
         // Downvote button click
-        btnDownvote.setOnClickListener {
+        downvoteLinearLayout.setOnClickListener {
             if (!downvoted) {
                 downvoted = true
                 downvoteCount++
@@ -151,7 +161,25 @@ class ForumDetailFragment : Fragment() {
             .get()
             .addOnSuccessListener { document ->
                 if (document != null) {
-                    txtUsername.text = document.getString("username")
+                    val username = document.getString("createdBy")
+                    txtUsername.text = username
+
+
+                    if (username != null) {
+                        getImageUrlFromUsername(username) { imageSrc ->
+                            if (imageSrc.isNotEmpty()) {
+                                // Use Glide to load the image into an ImageView
+                                Glide.with(this)
+                                    .load(imageSrc)
+                                    .placeholder(R.drawable.placeholder_image)
+                                    .circleCrop()
+                                    .error(R.drawable.placeholder_image)
+                                    .into(imgUserProfile)
+                            } else {
+                                Toast("No image found", requireContext())
+                            }
+                        }
+                    }
                     txtForumTitle.text = document.getString("title")
                     txtForumDescription.text = document.getString("description")
 
@@ -165,21 +193,74 @@ class ForumDetailFragment : Fragment() {
             }
     }
 
+    private fun getImageUrlFromUsername(username: String, callback: (String) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+
+        db.collection("users").document(username)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    val imageSrc = document.getString("imageSrc") ?: ""
+                    callback(imageSrc) // Pass the result to the callback
+                } else {
+                    callback("") // Return empty if no document found
+                }
+            }
+            .addOnFailureListener {
+                callback("") // Handle failure by returning an empty string
+            }
+    }
+
+    //    private fun fetchComments() {
+//        val db = FirebaseFirestore.getInstance()
+//        db.collection("forums").document(forumId).collection("comments")
+//            .orderBy("timestamp", Query.Direction.ASCENDING)
+//            .get()
+//            .addOnSuccessListener { documents ->
+//                commentList.clear()
+//                for (document in documents) {
+//                    val comment = document.toObject(Comment::class.java)
+//                    comment.id = document.id
+//                    commentList.add(comment)
+//                }
+//                commentAdapter.notifyDataSetChanged()
+//            }
+//    }
     private fun fetchComments() {
         val db = FirebaseFirestore.getInstance()
         db.collection("forums").document(forumId).collection("comments")
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .get()
             .addOnSuccessListener { documents ->
+                // Clear existing comments
                 commentList.clear()
+                val commentMap = mutableMapOf<String, Comment>() // Map to store comments by ID
+
+                // First pass to collect all comments
                 for (document in documents) {
                     val comment = document.toObject(Comment::class.java)
                     comment.id = document.id
-                    commentList.add(comment)
+                    commentMap[comment.id] = comment // Store comment by ID
                 }
+
+                // Second pass to organize comments and replies
+                for (comment in commentMap.values) {
+                    if (comment.parentId == null) {
+                        // Top-level comment, add to the main list
+                        commentList.add(comment)
+                    } else {
+                        // It's a reply, find its parent and add it to the parent's replies list
+                        commentMap[comment.parentId]?.let { parentComment ->
+                            parentComment.replies.add(comment) // Assuming `replies` is a MutableList<Comment> in Comment class
+                        }
+                    }
+                }
+
+                // Notify adapter of data changes
                 commentAdapter.notifyDataSetChanged()
             }
     }
+
 
     private fun fetchVoteStatistics() {
         val db = FirebaseFirestore.getInstance()
@@ -199,7 +280,11 @@ class ForumDetailFragment : Fragment() {
         val sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
         val userProfile = sharedPreferencesHelper.getUserProfile()
         val username = userProfile?.username
-        val comment = Comment(commentText, System.currentTimeMillis(), username.toString()) // Add the appropriate username
+        val comment = Comment(
+            commentText,
+            System.currentTimeMillis(),
+            username.toString()
+        ) // Add the appropriate username
         db.collection("forums").document(forumId).collection("comments").add(comment)
             .addOnSuccessListener {
                 editTextComment.text.clear()
@@ -222,11 +307,15 @@ class ForumDetailFragment : Fragment() {
 
     private fun sendReplyToFirestore(replyText: String, parentId: String) {
         val db = FirebaseFirestore.getInstance()
+        val sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
+        val userProfile = sharedPreferencesHelper.getUserProfile()
+
+        val username = userProfile?.username
         val reply = hashMapOf(
             "content" to replyText,
             "parentId" to parentId,
             "timestamp" to System.currentTimeMillis(),
-            "username" to "currentUsername" // Replace with actual username
+            "username" to username // Replace with actual username
         )
 
         db.collection("forums")

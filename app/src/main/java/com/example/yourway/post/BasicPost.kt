@@ -6,10 +6,12 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import com.example.yourway.R
+import com.example.yourway.Toast
 import com.example.yourway.databinding.FragmentBasicPostBinding
 import com.google.firebase.firestore.FirebaseFirestore
+
+import androidx.activity.enableEdgeToEdge
 
 
 class BasicPost : Fragment() {
@@ -31,15 +33,47 @@ class BasicPost : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Handle Image Picker button click
-        binding.btnDisplayImagePicker.setOnClickListener {
-            val fragment = ImagePickerFragment { imageUris ->
-                post.imageUrls = imageUris.map { it }.toMutableList()
-            }
-            childFragmentManager.beginTransaction()
-                .replace(R.id.image_picker_container, fragment)
-                .commit()
+
+        //load the images fragment initially
+        val fragment = ImagePickerFragment { imageUris ->
+            post.imageUrls = imageUris.map { it }.toMutableList()
         }
+        childFragmentManager.beginTransaction()
+            .replace(R.id.fcv_create_post, fragment)
+            .commit()
+
+        binding.switchCreatepostImageVideo.setOnCheckedChangeListener { _, isChecked ->
+            if(isChecked){
+//                val fragment = VideoPicker { videoUri ->
+//                    // Handle the selected video URI here
+//                    post.videoUrl = videoUri.toString()  // Store the video URL in your post object
+//                    // You can also update your UI or perform any further operations
+//                }
+
+//                childFragmentManager.beginTransaction()
+//                    .replace(R.id.fcv_create_post, fragment)
+//                    .commit()
+            }
+            else {
+                val fragment = ImagePickerFragment { imageUris ->
+                    post.imageUrls = imageUris.map { it }.toMutableList()
+                }
+                childFragmentManager.beginTransaction()
+                    .replace(R.id.fcv_create_post, fragment)
+                    .commit()
+            }
+        }
+
+
+//        // Handle Image Picker button click
+//        binding.btnDisplayImagePicker.setOnClickListener {
+//            val fragment = ImagePickerFragment { imageUris ->
+//                post.imageUrls = imageUris.map { it }.toMutableList()
+//            }
+//            childFragmentManager.beginTransaction()
+//                .replace(R.id.image_picker_container, fragment)
+//                .commit()
+//        }
 
         // Handle Review Post button click
         binding.btnGotoPostReview.setOnClickListener {

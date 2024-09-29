@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import com.example.yourway.R
 import com.example.yourway.Toast
 import com.example.yourway.chat.SharedPrefsHelper
@@ -18,6 +19,7 @@ class CreateForumFragment : Fragment() {
     private lateinit var titleEditText: EditText
     private lateinit var descriptionEditText: EditText
     private lateinit var submitButton: Button
+    private lateinit var ibtnBack: ImageButton
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -28,6 +30,11 @@ class CreateForumFragment : Fragment() {
         titleEditText = view.findViewById(R.id.et_createforum_title)
         descriptionEditText = view.findViewById(R.id.et_createforum_description)
         submitButton = view.findViewById(R.id.btn_createforum_submit)
+        ibtnBack = view.findViewById(R.id.ibtn_creatForum_back)
+
+        ibtnBack.setOnClickListener {
+            requireActivity().supportFragmentManager.popBackStack()
+        }
 
         // Set click listener for submit button
         submitButton.setOnClickListener {
