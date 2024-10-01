@@ -1,14 +1,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    >
 
     <!-- Button to trigger image selection -->
     <Button
         android:id="@+id/btn_select_images"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select Images" />
+        android:text="Select Images"
+        android:layout_gravity="center_horizontal"
+        />
 
     <!-- RecyclerView or GridView to display selected images -->
     <androidx.recyclerview.widget.RecyclerView
@@ -22,5 +26,7 @@
         android:id="@+id/btn_done"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Done" />
+        android:text="Done"
+        android:layout_gravity="center_horizontal"
+        />
 </LinearLayout>

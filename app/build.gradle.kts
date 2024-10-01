@@ -6,6 +6,7 @@ plugins {
     id("kotlin-kapt")
 }
 
+
 android {
     namespace = "com.example.yourway"
     compileSdk = 34
@@ -39,15 +40,12 @@ android {
     viewBinding{
         enable = true
     }
-    packagingOptions {
-        exclude("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+   packaging {
+        resources {
+            excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+        }
     }
-//    allprojects {
-//        repositories {
-//            mavenCentral()
-//            maven ("https://jitpack.io")
-//        }
-//    }
+//
 
 }
 
@@ -80,7 +78,6 @@ dependencies {
     implementation("com.mikepenz:iconics-core:5.3.1") // or the latest version
     implementation("com.mikepenz:iconics-views:5.3.1")
 
-//    //video picker
-//    implementation("com.github.tizisdeepan:gallerypicker:1.0.1")
+
 
 }

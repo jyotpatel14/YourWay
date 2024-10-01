@@ -1,15 +1,19 @@
 package com.example.yourway.explore.userlist
 
 import android.content.Intent
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.yourway.BaseActivity
 import com.example.yourway.R
+import com.example.yourway.explore.DisplayOtherUserProfile
+import com.example.yourway.userprofile.DisplayUserProfile
 
 class UserListAdapter(private val users: MutableList<User>) : RecyclerView.Adapter<UserListAdapter.UserViewHolder>() {
 
@@ -31,9 +35,21 @@ class UserListAdapter(private val users: MutableList<User>) : RecyclerView.Adapt
                 .into(ivProfileImage)
 
             itemView.setOnClickListener {
-                val intent = Intent(itemView.context, BaseActivity::class.java)
-                intent.putExtra("user", user)
-                itemView.context.startActivity(intent)
+                // Retrieve the parent FragmentManager
+                val fragmentManager = (itemView.context as AppCompatActivity).supportFragmentManager
+
+                // Create a new instance of the DisplayUserProfile fragment
+                val displayUserProfileFragment = DisplayOtherUserProfile().apply {
+                    arguments = Bundle().apply {
+                        putString("username", user.username) // Assuming `user` has an email property
+                    }
+                }
+
+                // Replace the current fragment in the FragmentContainerView
+                fragmentManager.beginTransaction()
+                    .replace(R.id.fcv_base, displayUserProfileFragment) // Replace with your FCV ID
+                    .addToBackStack(null) // Optional: Add to back stack to allow navigating back
+                    .commit()
             }
         }
     }

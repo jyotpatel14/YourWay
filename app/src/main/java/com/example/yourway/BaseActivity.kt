@@ -20,7 +20,9 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.example.yourway.authentication.AuthenticationActivity
 import com.example.yourway.chat.ChatBaseFragment
+import com.example.yourway.explore.DisplayOtherUserProfile
 import com.example.yourway.explore.ExploreFragment
+import com.example.yourway.fetchpost.HomeFeedPostListFragment
 import com.example.yourway.forum.ForumActivity
 import com.example.yourway.userprofile.DisplayUserProfile
 import com.example.yourway.userprofile.SharedPreferencesHelper
@@ -52,19 +54,17 @@ class BaseActivity : AppCompatActivity() {
         var addPostLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == RESULT_OK) {
-
-//                        setFragment(Explore())
+                    setFragment(HomeFeedPostListFragment())
 
 
                 }
                 bottomNavigationView.selectedItemId = R.id.home
             }
-
         // Set the initial fragment
         bottomNavigationView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.home -> {
-//                    setFragment(Explore())
+                    setFragment(HomeFeedPostListFragment())
                     return@setOnItemSelectedListener true
                 }
 
@@ -101,6 +101,9 @@ class BaseActivity : AppCompatActivity() {
             }
             false
         }
+
+
+        bottomNavigationView.selectedItemId = R.id.home
     }
 
     private fun setDrawerLayout() {
@@ -137,17 +140,19 @@ class BaseActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_forums -> {
-                    val intent = Intent(this@BaseActivity,ForumActivity::class.java)
+                    val intent = Intent(this@BaseActivity, ForumActivity::class.java)
                     startActivity(intent)
                     //close drawerLayout
                     drawerLayout.closeDrawers()
                     true
                 }
+
                 R.id.menu_logout -> {
                     // Handle logout logic
                     logoutUser()
                     true
                 }
+
                 else -> false
             }
         }
@@ -162,7 +167,10 @@ class BaseActivity : AppCompatActivity() {
         }
 
         // Redirect to Authentication Activity
-        val intent = Intent(this, AuthenticationActivity::class.java) // Replace with your actual Authentication Activity
+        val intent = Intent(
+            this,
+            AuthenticationActivity::class.java
+        ) // Replace with your actual Authentication Activity
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK) // Clear the activity stack
         startActivity(intent)
         finish() // Optionally finish the current activity
@@ -171,5 +179,22 @@ class BaseActivity : AppCompatActivity() {
 
     private fun setFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction().replace(R.id.fcv_base, fragment).commit()
+    }
+
+    override fun onBackPressed() {
+        // Get the current fragment
+        val currentFragment = supportFragmentManager.findFragmentById(R.id.fcv_base)
+
+        if (currentFragment is DisplayOtherUserProfile) {
+            // If the current fragment is DisplayOtherUserProfile, replace it with ExploreFragment
+            val exploreFragment = ExploreFragment() // Create an instance of ExploreFragment
+
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fcv_base, exploreFragment) // Replace the current fragment
+                .commit() // Commit the transaction
+        } else {
+            // Otherwise, let the system handle the back press (default behavior)
+            super.onBackPressed()
+        }
     }
 }

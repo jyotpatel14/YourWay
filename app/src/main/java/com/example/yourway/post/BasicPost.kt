@@ -42,27 +42,32 @@ class BasicPost : Fragment() {
             .replace(R.id.fcv_create_post, fragment)
             .commit()
 
-        binding.switchCreatepostImageVideo.setOnCheckedChangeListener { _, isChecked ->
-            if(isChecked){
-//                val fragment = VideoPicker { videoUri ->
-//                    // Handle the selected video URI here
-//                    post.videoUrl = videoUri.toString()  // Store the video URL in your post object
-//                    // You can also update your UI or perform any further operations
-//                }
+        binding.switchCreatepostImageVideo.visibility = View.GONE
+        binding.tvChoiceImages.visibility = View.GONE
+        binding.tvChoiceVideo.visibility = View.GONE
 
+
+//        binding.switchCreatepostImageVideo.setOnCheckedChangeListener { _, isChecked ->
+//            if(isChecked){
+////                val fragment = VideoPicker { videoUri ->
+////                    // Handle the selected video URI here
+////                    post.videoUrl = videoUri.toString()  // Store the video URL in your post object
+////                    // You can also update your UI or perform any further operations
+////                }
+//
+////                childFragmentManager.beginTransaction()
+////                    .replace(R.id.fcv_create_post, fragment)
+////                    .commit()
+//            }
+//            else {
+//                val fragment = ImagePickerFragment { imageUris ->
+//                    post.imageUrls = imageUris.map { it }.toMutableList()
+//                }
 //                childFragmentManager.beginTransaction()
 //                    .replace(R.id.fcv_create_post, fragment)
 //                    .commit()
-            }
-            else {
-                val fragment = ImagePickerFragment { imageUris ->
-                    post.imageUrls = imageUris.map { it }.toMutableList()
-                }
-                childFragmentManager.beginTransaction()
-                    .replace(R.id.fcv_create_post, fragment)
-                    .commit()
-            }
-        }
+//            }
+//        }
 
 
 //        // Handle Image Picker button click

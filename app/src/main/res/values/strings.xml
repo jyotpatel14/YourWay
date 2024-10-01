@@ -5,6 +5,7 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation Drawer</string>
 
+    <string name="image">Post Image</string>
     <string-array name="exploreSpinner">
         <item>People</item>
         <item>Post</item>

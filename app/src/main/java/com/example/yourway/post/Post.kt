@@ -11,7 +11,10 @@ data class Post(
     var title: String = "",
     var description: String = "",
     var imageUrls: MutableList<Uri> = mutableListOf(),
-    var videoUrl: String = ""
+    var videoUrl: String = "",
+    val commentCount: Int = 0,
+    val likes: Int = 0
+
 ) : Parcelable {
     override fun describeContents(): Int {
         return 0

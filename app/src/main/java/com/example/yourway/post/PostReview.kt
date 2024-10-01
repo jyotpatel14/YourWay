@@ -168,7 +168,10 @@ class PostReview : Fragment() {
             "title" to post.title,
             "description" to post.description,
             "imageUrls" to imageUrls, // Store the list of image URLs
-            "timestamp" to FieldValue.serverTimestamp() // Optionally add a timestamp
+            "timestamp" to FieldValue.serverTimestamp(), // Optionally add a timestamp
+            "commentCount" to 0,
+            "likes" to 0
+
         )
 
         // Upload the post data to Firestore
