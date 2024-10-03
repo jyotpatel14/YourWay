@@ -16,6 +16,7 @@ import com.example.yourway.Toast
 import com.example.yourway.explore.postimagegrid.Post
 import com.example.yourway.explore.postimagegrid.PostAdapter
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 
 
@@ -68,22 +69,22 @@ class UserPostImageGridRVFragment : Fragment() {
             }
         })
     }
-
     private fun fetchPosts(isRefreshing: Boolean = false, isFetchingMore: Boolean = false) {
         Log.d("PostImageGridRVFragment", "fetchPosts called") // Log fetch call
+
         if (isFetching) return
         isFetching = true
 
         getRandomPostsFromFirestore { fetchedPosts ->
             Log.d("PostImageGridRVFragment", "Fetched posts: ${fetchedPosts.size}") // Log number of posts fetched
 
-            if (isRefreshing) {
-                postAdapter.refreshPosts(fetchedPosts)
-                swipeRefreshLayout.isRefreshing = false
-            } else if (isFetchingMore) {
-                postAdapter.addPosts(fetchedPosts)
-            } else {
-                postAdapter.refreshPosts(fetchedPosts)
+            when {
+                isRefreshing -> {
+                    postAdapter.refreshPosts(fetchedPosts)
+                    swipeRefreshLayout.isRefreshing = false
+                }
+                isFetchingMore -> postAdapter.addPosts(fetchedPosts)
+                else -> postAdapter.refreshPosts(fetchedPosts)
             }
 
             isFetching = false
@@ -91,37 +92,46 @@ class UserPostImageGridRVFragment : Fragment() {
     }
 
     private fun getRandomPostsFromFirestore(onPostsFetched: (List<Post>) -> Unit) {
-        Toast("Fetching...", requireContext())
+        Log.d("Firestore", "Fetching posts...")
 
         val posts = mutableListOf<Post>()
         val db = FirebaseFirestore.getInstance()
-        var query = db.collection("posts")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .limit(50)
+        var query: Query? = null
 
         // Apply filtering by username if available
         if (!username.isNullOrEmpty()) {
-            query = query.whereEqualTo("username", username)
+            query = db.collection("posts")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .whereEqualTo("username", username)
+                .limit(50)
+            Log.d("Firestore", "Filtering by username: $username")
         }
 
-        query.get()
+        query!!.get()
             .addOnSuccessListener { snapshot ->
                 if (!snapshot.isEmpty) {
-                    Toast("Data fetched...", requireContext())
+                    Log.d("Firestore", "Data fetched successfully. Number of posts: ${snapshot.size()}")
                     for (doc in snapshot) {
                         val post = doc.toObject(Post::class.java)
                         posts.add(post)
-                        Log.d("Post", "Fetched post: $post")  // Log each fetched post
+                        Log.d("Firestore", "Fetched post: $post")  // Log each fetched post
                     }
                     onPostsFetched(posts)
                 } else {
-                    Toast("No post found...", requireContext())
+                    Log.d("Firestore", "No posts found")
                 }
             }
             .addOnFailureListener { exception ->
-                Toast("Error: ${exception.message}...", requireContext())
+                // Check if the error is related to Firestore requiring an index
+                if (exception is FirebaseFirestoreException && exception.code == FirebaseFirestoreException.Code.FAILED_PRECONDITION) {
+                    Log.e("Firestore", "Index required: ${exception.message}")
+                } else {
+                    Log.e("Firestore", "Error fetching posts: ${exception.message}")
+                }
             }
     }
+
+
 
     companion object {
         // Method to instantiate fragment with username argument

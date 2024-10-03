@@ -21,6 +21,7 @@
             >
 
             <ImageView
+                android:layout_marginVertical="5dp"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:id="@+id/iv_post_userProfile"
@@ -52,12 +53,69 @@
 
         <!-- ViewPager for displaying images -->
         <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/viewPagerImages"
+            android:id="@+id/vp_post"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
             android:backgroundTint="#C8C8C8"
             />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="#878787"
+            android:elevation="1dp"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            android:gravity="center_horizontal"
+            >
+            <ImageButton
+                android:id="@+id/ibtn_post_like"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/baseline_thumb_up_off_alt_24"
+                android:backgroundTint="#00939393"
+
+                />
+
+            <TextView
+                android:id="@+id/tv_post_likes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_gravity="center_vertical"
+
+                />
+
+            <ImageButton
+                android:id="@+id/ibtn_post_show_comment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/baseline_chat_bubble_outline_24"
+                android:backgroundTint="#00939393"
+                android:layout_marginLeft="16dp"
+                android:layout_gravity="end"
+                />
+
+            <!-- Comment Count -->
+            <TextView
+                android:id="@+id/tv_comment_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="@android:color/darker_gray"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="16dp"
+            />
+
+        </LinearLayout>
+
+
         <View
             android:layout_width="match_parent"
             android:layout_height="0.5dp"
@@ -75,6 +133,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Post Content"
+                android:textStyle="bold"
                 android:textSize="16sp"
                 android:textColor="@android:color/black"
                 app:layout_constraintStart_toStartOf="parent"
@@ -95,37 +154,13 @@
 
                 android:paddingBottom="8dp"/>
 
-            <TextView
-                android:id="@+id/likesTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Likes: 0"
-                android:textSize="14sp"
-                android:textColor="@android:color/darker_gray"
-                app:layout_constraintTop_toBottomOf="@id/tv_post_description"
-                app:layout_constraintStart_toStartOf="parent"/>
 
 
 
-            <!-- Comment Button -->
-            <Button
-                android:id="@+id/commentButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Comment"
-                app:layout_constraintTop_toBottomOf="@id/likesTextView"
-                app:layout_constraintStart_toStartOf="parent"
-                android:layout_marginTop="16dp"/>
 
-            <!-- Comment Count -->
-            <TextView
-                android:id="@+id/commentCountTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 Comments"
-                app:layout_constraintTop_toBottomOf="@id/likesTextView"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginTop="16dp"/>
+
+
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>

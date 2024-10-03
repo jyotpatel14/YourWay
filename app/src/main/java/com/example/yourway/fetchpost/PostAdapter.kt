@@ -5,71 +5,120 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.yourway.R
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
+import com.example.yourway.Toast
+import com.example.yourway.forum.ForumAdapter
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import org.w3c.dom.Text
 
 class PostAdapter(
-    private val onPostClick: (String) -> Unit
-) : ListAdapter<Post, PostAdapter.PostViewHolder>(PostDiffCallback()) {
+    private val postList:List<Post>,
+    private val onItemClick: (String) -> Unit
+): RecyclerView.Adapter<PostAdapter.PostViewHolder>(){
 
-    private val TAG = "PostAdapter" // Define a tag for logging
+    private val TAG = "PostAdapter"
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
-        Log.d(TAG, "onCreateViewHolder: Creating ViewHolder")
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_post, parent, false)
+    inner class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
+        val tvUsername: TextView = itemView.findViewById(R.id.tv_post_username)
+        val tvDescription: TextView = itemView.findViewById(R.id.tv_post_description)
+        val tvTitle: TextView = itemView.findViewById(R.id.tv_post_title)
+        val ivProfileImage: ImageView = itemView.findViewById(R.id.iv_post_userProfile)
+        val vpImages: ViewPager2 = itemView.findViewById(R.id.vp_post)
+        val tvlikesCount:TextView = itemView.findViewById(R.id.tv_post_likes)
+        val tvCommentCount: TextView = itemView.findViewById(R.id.tv_comment_count)
+        val btnShowComment: ImageButton = itemView.findViewById(R.id.ibtn_post_show_comment)
+        val btnPostLike: ImageButton = itemView.findViewById(R.id.ibtn_post_like)
+
+    }
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): PostAdapter.PostViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_post, parent,false)
         return PostViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        Log.d(TAG, "onBindViewHolder: Binding post at position $position")
-        val post = getItem(position)
-        holder.bind(post)
+    override fun getItemCount(): Int = postList.size
+
+    override fun onBindViewHolder(holder: PostAdapter.PostViewHolder, position: Int) {
+        val post = postList[position]
+        holder.tvUsername.text = post.username
+        holder.tvTitle.text = post.title
+        holder.tvDescription.text = post.description
+        holder.tvlikesCount.text = post.likes.toString()
+        holder.tvCommentCount.text = post.commentCount.toString()
+
+        // Add real-time listeners for likes and comments
+        observePostChanges(post.postId, holder)
+
+        holder.btnShowComment.setOnClickListener {
+            Toast("hello , {${post.postId}}",holder.itemView.context)
+            //now i want to call the comments bottom sheet fragment here
+            val commentsBottomSheet = CommentBottomSheetFragment.newInstance(post.postId)
+            commentsBottomSheet.show((holder.itemView.context as FragmentActivity).supportFragmentManager, "CommentsBottomSheet")
+
+        }
+
+        holder.btnPostLike.setOnClickListener {
+            // Check if the button is already in the "liked" state
+            if (holder.btnPostLike.tag != "liked") {
+                val db = FirebaseFirestore.getInstance().collection("posts").document(post.postId)
+
+                // Increment the "likes" field in Firestore
+                db.update("likes", FieldValue.increment(1))
+                    .addOnSuccessListener {
+                        Log.d(TAG, "Successfully incremented like count for post: ${post.postId}")
+
+                        // Change the button icon to the "liked" state
+                        holder.btnPostLike.setImageResource(R.drawable.baseline_thumb_up_alt_24)
+                        holder.btnPostLike.tag = "liked" // Set the tag to "liked"
+                        Toast("Post liked!", holder.itemView.context)
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.e(TAG, "Error incrementing like count: ${exception.message}")
+                        Toast("Failed to like post", holder.itemView.context)
+                    }
+            }
+        }
+
+
+
+        loadUserProfileImage(post.username,holder.ivProfileImage)
+        val imageAdapter = ImagePagerAdapter(post.imageUrls)
+        holder.vpImages.adapter = imageAdapter
+
+
     }
 
-    inner class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val profileImageIv: ImageView = itemView.findViewById(R.id.iv_post_userProfile)
-        private val usernameTextView: TextView = itemView.findViewById(R.id.tv_post_username)
-        private val titleTextView: TextView = itemView.findViewById(R.id.tv_post_title)
-        private val descriptionTextView: TextView = itemView.findViewById(R.id.tv_post_description)
-        private val likesTextView: TextView = itemView.findViewById(R.id.likesTextView)
-        private val commentButton: Button = itemView.findViewById(R.id.commentButton)
-        private val commentCountTextView: TextView = itemView.findViewById(R.id.commentCountTextView)
-        private val viewPager: ViewPager2 = itemView.findViewById(R.id.viewPagerImages)
+    private fun observePostChanges(postId: String, holder: PostAdapter.PostViewHolder) {
+        val db = FirebaseFirestore.getInstance().collection("posts").document(postId)
 
-        fun bind(post: Post) {
-            Log.d(TAG, "bind: Binding post with ID ${post.postId}")
-
-            titleTextView.text = post.title
-            descriptionTextView.text = post.description
-            likesTextView.text = "Likes: ${post.likes}"
-            commentCountTextView.text = "${post.commentCount} Comments"
-            usernameTextView.text = post.username
-
-            // Load user profile image
-            loadUserProfileImage(post.username, profileImageIv)
-
-            // Set up ViewPager for images
-            val imageAdapter = ImagePagerAdapter(post.imageUrls)
-            viewPager.adapter = imageAdapter
-
-            // Handle post click
-            itemView.setOnClickListener {
-                Log.d(TAG, "onClick: Post clicked with ID ${post.postId}")
-                onPostClick(post.postId)
+        db.addSnapshotListener { documentSnapshot, exception ->
+            if (exception != null) {
+                Log.e(TAG, "Listen failed: $exception")
+                return@addSnapshotListener
             }
 
-            // Handle comment button click
-            commentButton.setOnClickListener {
-                Log.d(TAG, "commentButton: Comment button clicked for post ID ${post.postId}")
-                // Implement the comment feature here
-                // You can start a new activity or show a dialog for commenting
+            if (documentSnapshot != null && documentSnapshot.exists()) {
+                val newLikesCount = documentSnapshot.getLong("likes") ?: 0
+                val newCommentCount = documentSnapshot.getLong("commentCount") ?: 0
+
+                // Update UI with the new values
+                holder.tvlikesCount.text = newLikesCount.toString()
+                holder.tvCommentCount.text = newCommentCount.toString()
+            } else {
+                Log.d(TAG, "Current data: null")
             }
         }
     }
@@ -110,15 +159,5 @@ class PostAdapter(
             Log.e(TAG, "loadUserProfileImage: Error fetching document for username $username", exception)
             imageView.setImageResource(R.drawable.placeholder_image) // Set a default image in case of an error
         }
-    }
-}
-
-class PostDiffCallback : DiffUtil.ItemCallback<Post>() {
-    override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
-        return oldItem.postId == newItem.postId
-    }
-
-    override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
-        return oldItem == newItem
     }
 }

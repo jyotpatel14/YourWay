@@ -280,6 +280,7 @@ class ForumDetailFragment : Fragment() {
         val sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
         val userProfile = sharedPreferencesHelper.getUserProfile()
         val username = userProfile?.username
+
         val comment = Comment(
             commentText,
             System.currentTimeMillis(),

@@ -1,8 +1,8 @@
 package com.example.yourway.fetchpost
 data class Comment(
-    val commentId: String,
-    val content: String,
-    val likes: Int,
-    val timestamp: Long,
-    val userId: String
+    var commentText: String = "",
+    var timestamp: Long = System.currentTimeMillis(),
+    var username: String? = null,
+    var likes: Int = 0,
+    var commentId: String = ""
 )

@@ -1,22 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="470dp"
         android:orientation="vertical"
+
         android:padding="16dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
             android:text="Comments"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:paddingBottom="8dp"/>
+            android:gravity="center_horizontal"
+            />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_post_comments"
@@ -25,4 +30,56 @@
 
     </LinearLayout>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:gravity="fill"
+        >
+
+        <EditText
+            android:id="@+id/et_post_comment"
+            android:layout_width="310dp"
+            android:layout_height="48dp"
+            android:layout_marginLeft="16dp"
+            android:hint="share a comment..."
+            android:paddingLeft="10dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginVertical="5dp"
+            app:layout_constraintEnd_toStartOf="@id/ibtn_post_comment"
+            android:paddingRight="35dp"
+            />
+
+        <ImageButton
+            android:id="@+id/ibtn_comment_et_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_cancel_24"
+            android:backgroundTint="#00000000"
+            app:layout_constraintEnd_toEndOf="@id/et_post_comment"
+            app:layout_constraintTop_toTopOf="@id/et_post_comment"
+            app:layout_constraintBottom_toBottomOf="@id/et_post_comment"
+            android:visibility="gone"
+
+            />
+
+        <ImageButton
+            android:id="@+id/ibtn_post_comment"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="5dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/circle_icons"
+            android:backgroundTint="#63AE63"
+            android:src="@drawable/baseline_send_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:tint="@color/white" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>
