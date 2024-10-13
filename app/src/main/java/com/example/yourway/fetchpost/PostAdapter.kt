@@ -1,13 +1,18 @@
 package com.example.yourway.fetchpost
 
+import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.util.Log
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -17,12 +22,14 @@ import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.example.yourway.Toast
 import com.example.yourway.forum.ForumAdapter
+import com.example.yourway.userprofile.SharedPreferencesHelper
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import org.w3c.dom.Text
 
 class PostAdapter(
     private val postList:List<Post>,
+    private val sharedPreferencesHelper: SharedPreferencesHelper,
     private val onItemClick: (String) -> Unit
 ): RecyclerView.Adapter<PostAdapter.PostViewHolder>(){
 
@@ -38,6 +45,7 @@ class PostAdapter(
         val tvCommentCount: TextView = itemView.findViewById(R.id.tv_comment_count)
         val btnShowComment: ImageButton = itemView.findViewById(R.id.ibtn_post_show_comment)
         val btnPostLike: ImageButton = itemView.findViewById(R.id.ibtn_post_like)
+        val ibtnMoreMenu: ImageButton = itemView.findViewById(R.id.ibtn_post_moremenu)
 
     }
     override fun onCreateViewHolder(
@@ -51,6 +59,7 @@ class PostAdapter(
 
     override fun getItemCount(): Int = postList.size
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: PostAdapter.PostViewHolder, position: Int) {
         val post = postList[position]
         holder.tvUsername.text = post.username
@@ -58,6 +67,60 @@ class PostAdapter(
         holder.tvDescription.text = post.description
         holder.tvlikesCount.text = post.likes.toString()
         holder.tvCommentCount.text = post.commentCount.toString()
+
+        val username = sharedPreferencesHelper.getUserProfile()?.username
+        if (username == post.username){
+            holder.ibtnMoreMenu.visibility = View.VISIBLE
+        }
+        else{
+            holder.ibtnMoreMenu.visibility = View.GONE
+        }
+
+        //double tap like
+        // Gesture detector for double tap
+        val gestureDetector = GestureDetector(holder.itemView.context, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                likePost(post.postId, holder)
+                return true
+            }
+        })
+
+        // Set touch listener to detect double-tap on the image or description
+        holder.vpImages.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            true
+        }
+
+
+
+
+        holder.ibtnMoreMenu.setOnClickListener {
+            // Inflate the menu and create a PopupMenu
+            val popupMenu = PopupMenu(holder.itemView.context, holder.ibtnMoreMenu)
+            popupMenu.menuInflater.inflate(R.menu.post_more_menu, popupMenu.menu)
+
+            popupMenu.setForceShowIcon(true)
+
+            // Handle menu item clicks
+            popupMenu.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.more_menu_edit -> {
+                        // Handle edit post action
+                        onEditPost(post,holder)
+                        true
+                    }
+                    R.id.more_menu_delete -> {
+                        // Handle delete post action
+                        onDeletePost(post,holder)
+                        true
+                    }
+                    else -> false
+                }
+            }
+
+            // Show the popup menu
+            popupMenu.show()
+        }
 
         // Add real-time listeners for likes and comments
         observePostChanges(post.postId, holder)
@@ -71,34 +134,96 @@ class PostAdapter(
         }
 
         holder.btnPostLike.setOnClickListener {
-            // Check if the button is already in the "liked" state
-            if (holder.btnPostLike.tag != "liked") {
-                val db = FirebaseFirestore.getInstance().collection("posts").document(post.postId)
-
-                // Increment the "likes" field in Firestore
-                db.update("likes", FieldValue.increment(1))
-                    .addOnSuccessListener {
-                        Log.d(TAG, "Successfully incremented like count for post: ${post.postId}")
-
-                        // Change the button icon to the "liked" state
-                        holder.btnPostLike.setImageResource(R.drawable.baseline_thumb_up_alt_24)
-                        holder.btnPostLike.tag = "liked" // Set the tag to "liked"
-                        Toast("Post liked!", holder.itemView.context)
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.e(TAG, "Error incrementing like count: ${exception.message}")
-                        Toast("Failed to like post", holder.itemView.context)
-                    }
-            }
+            likePost(post.postId,holder)
         }
 
 
 
         loadUserProfileImage(post.username,holder.ivProfileImage)
-        val imageAdapter = ImagePagerAdapter(post.imageUrls)
+        val imageAdapter = ImagePagerAdapter(post.imageUrls){
+            likePost(post.postId,holder)
+        }
         holder.vpImages.adapter = imageAdapter
 
 
+    }
+
+    private fun likePost(postId: String, holder: PostAdapter.PostViewHolder) {
+        // Check if the button is already in the "liked" state
+        if (holder.btnPostLike.tag != "liked") {
+            val db = FirebaseFirestore.getInstance().collection("posts").document(postId)
+
+            // Increment the "likes" field in Firestore
+            db.update("likes", FieldValue.increment(1))
+                .addOnSuccessListener {
+                    Log.d(TAG, "Successfully incremented like count for post: ${postId}")
+
+                    // Change the button icon to the "liked" state
+                    holder.btnPostLike.setImageResource(R.drawable.baseline_thumb_up_alt_24)
+                    holder.btnPostLike.tag = "liked" // Set the tag to "liked"
+                    Toast("Post liked!", holder.itemView.context)
+                }
+                .addOnFailureListener { exception ->
+                    Log.e(TAG, "Error incrementing like count: ${exception.message}")
+                    Toast("Failed to like post", holder.itemView.context)
+                }
+        }
+    }
+
+    // Add methods to handle edit and delete actions
+    private fun onEditPost(post: Post, holder: PostViewHolder) {
+        Log.d(TAG, "Edit post clicked for post ID: ${post.postId}")
+
+        // Create a new instance of EditPostBottomSheetFragment with the postId
+        val editPostBottomSheet = EditPostBottomSheetFragment.newInstance(post)
+
+        editPostBottomSheet.show((holder.itemView.context as FragmentActivity).supportFragmentManager, "CommentsBottomSheet")
+    }
+
+    private fun onDeletePost(post: Post, holder: PostViewHolder) {
+        // Log the post ID being deleted
+        Log.d(TAG, "Delete post clicked for post ID: ${post.postId}")
+
+        // Create an AlertDialog for confirmation
+        val builder = AlertDialog.Builder(holder.itemView.context)
+        builder.setTitle("Delete Post")
+        builder.setMessage("Are you sure you want to delete this post?")
+
+        // Positive button action
+        builder.setPositiveButton("Yes") { dialog, _ ->
+            // Call the delete function
+            deletePost(post.postId)
+            holder.itemView.visibility = View.GONE
+
+            dialog.dismiss() // Dismiss the dialog
+        }
+
+        // Negative button action
+        builder.setNegativeButton("No") { dialog, _ ->
+            dialog.dismiss() // Just dismiss the dialog if "No" is clicked
+        }
+
+        // Create and show the AlertDialog
+        val alertDialog = builder.create()
+        alertDialog.show()
+    }
+
+    // Function to delete the post document in Firestore
+    private fun deletePost(postId: String) {
+        val db = FirebaseFirestore.getInstance()
+
+        // Delete the document with the specified postId
+        db.collection("posts")
+            .document(postId)
+            .delete()
+            .addOnSuccessListener {
+                Log.e(TAG, "Post Delete Successfully")
+            }
+            .addOnFailureListener { e ->
+                // Handle failure, e.g., log the error or show an error message
+                Log.e(TAG, "Error deleting post: ", e)
+
+            }
     }
 
     private fun observePostChanges(postId: String, holder: PostAdapter.PostViewHolder) {

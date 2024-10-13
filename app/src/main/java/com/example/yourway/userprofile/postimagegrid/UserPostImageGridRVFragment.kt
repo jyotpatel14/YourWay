@@ -15,6 +15,7 @@ import com.example.yourway.R
 import com.example.yourway.Toast
 import com.example.yourway.explore.postimagegrid.Post
 import com.example.yourway.explore.postimagegrid.PostAdapter
+import com.example.yourway.fetchpost.UserPostList
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
@@ -52,9 +53,7 @@ class UserPostImageGridRVFragment : Fragment() {
     private fun setupRecyclerView() {
         postAdapter = PostAdapter(mutableListOf()) { post ->
             // Start FullPostActivity
-            val intent = Intent(context, BaseActivity::class.java)
-            intent.putExtra("post", post)
-            startActivity(intent)
+            (activity as? BaseActivity)?.replaceWithUserPostList(post.id)
         }
 
         recyclerView.adapter = postAdapter
@@ -113,6 +112,8 @@ class UserPostImageGridRVFragment : Fragment() {
                     Log.d("Firestore", "Data fetched successfully. Number of posts: ${snapshot.size()}")
                     for (doc in snapshot) {
                         val post = doc.toObject(Post::class.java)
+                        post.id = doc.id
+                        Toast(post.id,requireContext())
                         posts.add(post)
                         Log.d("Firestore", "Fetched post: $post")  // Log each fetched post
                     }

@@ -93,6 +93,8 @@ class PostImageGridRVFragment : Fragment() {
         val posts = mutableListOf<Post>()
         FirebaseFirestore.getInstance().collection("posts")
 //            .whereArrayContains("imageUrls", true)
+            .orderBy("likes",Query.Direction.DESCENDING)
+            .orderBy("commentCount",Query.Direction.DESCENDING)
             .orderBy("timestamp",Query.Direction.DESCENDING)
             .limit(50)
 

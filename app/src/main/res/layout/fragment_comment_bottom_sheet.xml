@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="470dp"
+        android:layout_height="match_parent"
         android:orientation="vertical"
 
         android:padding="16dp">
@@ -16,17 +15,39 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:paddingBottom="8dp"
             android:text="Comments"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:gravity="center_horizontal"
-            />
+            android:textStyle="bold" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_post_comments"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_post_comments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+
+                    />
+            </LinearLayout>
+
+        </ScrollView>
+
 
     </LinearLayout>
 
@@ -34,34 +55,32 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:gravity="fill"
-        >
+        android:background="#FDF6FE">
 
         <EditText
             android:id="@+id/et_post_comment"
             android:layout_width="310dp"
             android:layout_height="48dp"
+            android:layout_marginVertical="5dp"
             android:layout_marginLeft="16dp"
             android:hint="share a comment..."
             android:paddingLeft="10dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginVertical="5dp"
-            app:layout_constraintEnd_toStartOf="@id/ibtn_post_comment"
             android:paddingRight="35dp"
-            />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/ibtn_post_comment"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/ibtn_comment_et_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/baseline_cancel_24"
             android:backgroundTint="#00000000"
+            android:src="@drawable/baseline_cancel_24"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/et_post_comment"
             app:layout_constraintEnd_toEndOf="@id/et_post_comment"
             app:layout_constraintTop_toTopOf="@id/et_post_comment"
-            app:layout_constraintBottom_toBottomOf="@id/et_post_comment"
-            android:visibility="gone"
 
             />
 
@@ -76,10 +95,11 @@
             android:background="@drawable/circle_icons"
             android:backgroundTint="#63AE63"
             android:src="@drawable/baseline_send_24"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:tint="@color/white" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</LinearLayout>
+
+</FrameLayout>

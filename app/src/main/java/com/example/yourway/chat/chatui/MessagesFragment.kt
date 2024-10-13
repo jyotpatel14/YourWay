@@ -134,7 +134,22 @@ class MessagesFragment : Fragment() {
             .add(message)
             .addOnSuccessListener {
                 Log.d("MessagesFragment", "Message sent successfully")
-                Toast.makeText(requireContext(), "Message sent", Toast.LENGTH_SHORT).show()
+
+
+                // Update the last message and last message time in chat document
+                val updates = hashMapOf<String, Any>(
+                    "lastMessage" to messageText,
+                    "lastMessageTime" to System.currentTimeMillis()
+                )
+
+                firestore.collection("chats").document(chatId)
+                    .update(updates)
+                    .addOnSuccessListener {
+                        Log.d("MessagesFragment", "Chat updated with last message and time")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("MessagesFragment", "Error updating chat: ", e)
+                    }
             }
             .addOnFailureListener { e ->
                 Log.e("MessagesFragment", "Error sending message: ", e)

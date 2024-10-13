@@ -1,6 +1,9 @@
 package com.example.yourway.fetchpost
 
+import android.annotation.SuppressLint
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -8,7 +11,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.yourway.R
 class ImagePagerAdapter(
-    private val images: List<String>
+    private val images: List<String>,
+    private val onImageDoubleTap: () -> Unit
 ) : RecyclerView.Adapter<ImagePagerAdapter.ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
@@ -17,6 +21,7 @@ class ImagePagerAdapter(
         return ImageViewHolder(view)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         val imageSrc = images[position]
 
@@ -24,6 +29,20 @@ class ImagePagerAdapter(
         Glide.with(holder.imageView.context)
             .load(imageSrc)
             .into(holder.imageView)
+
+        // Gesture detector for double tap
+        val gestureDetector = GestureDetector(holder.itemView.context, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                onImageDoubleTap() // Call the callback function on double tap
+                return true
+            }
+        })
+
+        // Set the touch listener on the image to detect double-tap
+        holder.imageView.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            true
+        }
     }
 
     override fun getItemCount(): Int = images.size

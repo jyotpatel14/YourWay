@@ -37,6 +37,12 @@ class BasicPost : Fragment() {
         //load the images fragment initially
         val fragment = ImagePickerFragment { imageUris ->
             post.imageUrls = imageUris.map { it }.toMutableList()
+            if (post.imageUrls.isNotEmpty()){
+                binding.btnGotoPostReview.isEnabled = true
+            }
+            else{
+                binding.btnGotoPostReview.isEnabled = false
+            }
         }
         childFragmentManager.beginTransaction()
             .replace(R.id.fcv_create_post, fragment)

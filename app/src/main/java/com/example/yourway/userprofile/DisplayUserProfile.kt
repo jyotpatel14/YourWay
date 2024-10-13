@@ -20,6 +20,7 @@ import com.bumptech.glide.load.resource.bitmap.CircleCrop // For circular croppi
 import com.bumptech.glide.request.RequestOptions
 import com.example.yourway.Toast
 import com.example.yourway.authentication.AuthenticationActivity
+import com.example.yourway.fetchpost.UserPostList
 import com.example.yourway.forum.ForumActivity
 import com.example.yourway.userprofile.postimagegrid.UserPostImageGridRVFragment
 import com.example.yourway.userprofile.postimagegrid.VPAdapter
@@ -220,16 +221,14 @@ class DisplayUserProfile : Fragment() {
     private fun setupVP(view: View,email: String) {
         val sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
         val userProfile = sharedPreferencesHelper.getUserProfile()
-
-
         val username = userProfile?.username
+
         tabLayout = view.findViewById(R.id.tabLayout_profile)
         viewPager = view.findViewById(R.id.viewPager_profile)
 
-
         vpAdapter = VPAdapter(childFragmentManager,lifecycle)
-        vpAdapter.addFragment(UserPostImageGridRVFragment.newInstance(username.toString()),"Posts")
-//        vpAdapter.addFragment(Services(),"Services")
+        vpAdapter.addFragment(UserPostImageGridRVFragment.newInstance(username.toString()),"Grid")
+        vpAdapter.addFragment(UserPostList.newInstance(username.toString()),"List")
 //        vpAdapter.addFragment(Business(),"Business")
 
         viewPager.adapter = vpAdapter

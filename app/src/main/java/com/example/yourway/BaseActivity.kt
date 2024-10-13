@@ -23,6 +23,7 @@ import com.example.yourway.chat.ChatBaseFragment
 import com.example.yourway.explore.DisplayOtherUserProfile
 import com.example.yourway.explore.ExploreFragment
 import com.example.yourway.fetchpost.HomeFeedPostListFragment
+import com.example.yourway.fetchpost.UserPostList
 import com.example.yourway.forum.ForumActivity
 import com.example.yourway.userprofile.DisplayUserProfile
 import com.example.yourway.userprofile.SharedPreferencesHelper
@@ -196,5 +197,18 @@ class BaseActivity : AppCompatActivity() {
             // Otherwise, let the system handle the back press (default behavior)
             super.onBackPressed()
         }
+    }
+
+    fun replaceWithUserPostList(postId: String) {
+        val fragment = UserPostList().apply {
+            arguments = Bundle().apply {
+                putString("postId", postId)  // Pass postId to UserPostList fragment
+            }
+        }
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fcv_base, fragment)
+            .addToBackStack(null)  // Add to back stack if you want to allow back navigation
+            .commit()
     }
 }

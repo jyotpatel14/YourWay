@@ -47,32 +47,61 @@ class ImagePickerFragment(private val onImagesPicked: (MutableList<Uri>) -> Unit
         super.onViewCreated(view, savedInstanceState)
 
         recyclerView = binding.recyclerViewImages
-        recyclerView.layoutManager = GridLayoutManager(requireContext(),3)
-        adapter = ImageAdapter(selectedImagePaths)
+        recyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
+
+        adapter = ImageAdapter(selectedImagePaths) { position ->
+            // This block is executed when an item is removed
+            uriList.removeAt(position) // Remove the image path from the fragment's list
+            selectedImagePaths.removeAt(position)
+
+            onImagesPicked(uriList)
+
+        }
         recyclerView.adapter = adapter
 
-        binding.btnSelectImages.setOnClickListener {
+        binding.btnSelectImage.setOnClickListener {
 
-                val intent = ImagePicker.with(requireActivity())
-                    .provider(ImageProvider.GALLERY) // Allows both camera and gallery
-                    .setMultipleAllowed(true)
-                    .crop()
-                    .cropFreeStyle()
-                    .galleryMimeTypes(
-                        mimeTypes = arrayOf("image/png", "image/jpg", "image/jpeg")
-                    )
+            val intent = ImagePicker.with(requireActivity())
+                .provider(ImageProvider.GALLERY) // Allows both camera and gallery
+                .crop()
+                .cropFreeStyle()
+                .galleryMimeTypes(
+                    mimeTypes = arrayOf("image/png", "image/jpg", "image/jpeg")
+                )
 
-                    .createIntent()
+                .createIntent()
             imagePickerLauncher.launch(intent)
 
 
         }
 
-        binding.btnDone.setOnClickListener {
-            onImagesPicked(uriList)
-            parentFragmentManager.popBackStack()
-            Toast.makeText(requireContext(), "Image Selection Complete " + uriList.size, Toast.LENGTH_SHORT).show()
+        binding.btnSelectImages.setOnClickListener {
+
+            val intent = ImagePicker.with(requireActivity())
+                .provider(ImageProvider.GALLERY) // Allows both camera and gallery
+                .setMultipleAllowed(true)
+                .crop()
+                .cropFreeStyle()
+                .galleryMimeTypes(
+                    mimeTypes = arrayOf("image/png", "image/jpg", "image/jpeg")
+                )
+
+                .createIntent()
+            imagePickerLauncher.launch(intent)
+
+
         }
+
+        binding.btnDone.visibility = View.GONE
+//        binding.btnDone.setOnClickListener {
+//            onImagesPicked(uriList)
+//            parentFragmentManager.popBackStack()
+//            Toast.makeText(
+//                requireContext(),
+//                "Image Selection Complete " + uriList.size,
+//                Toast.LENGTH_SHORT
+//            ).show()
+//        }
     }
 
 
@@ -87,26 +116,33 @@ class ImagePickerFragment(private val onImagesPicked: (MutableList<Uri>) -> Unit
             val data = res.data?.data
 //            val uriList = mutableListOf<Uri>()
 
-            uriList = res.data?.getParcelableArrayListExtra("extra.multiple_file_path")!!
-
+            uriList = res.data?.getParcelableArrayListExtra("extra.multiple_file_path") ?: mutableListOf()
             if (data != null){
                 Toast.makeText(requireContext(), "data ......", Toast.LENGTH_SHORT).show()
                 uriList.add(data)
+                Log.d("imgpicker","single")
             }
 
             if (clipData != null) {
+                Toast.makeText(requireContext(), "data ......", Toast.LENGTH_SHORT).show()
                 for (i in 0 until clipData.itemCount) {
                     uriList.add(clipData.getItemAt(i).uri)
+                    Log.d("imgpicker","multiple")
                 }
             }
-
+//
             // Process and display the images
             processImages(uriList)
-            Toast.makeText(requireContext(), "Process Image Completer ${res.data} " + clipData?.itemCount, Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "Process Image Completer ${res.data} " + clipData?.itemCount,
+                Toast.LENGTH_SHORT
+            ).show()
         } else if (res.resultCode == ImagePicker.RESULT_ERROR) {
             // Handle errors more gracefully
             val error = ImagePicker.getError(res.data)
-            Toast.makeText(requireContext(), "Image Picker Error: $error", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Image Picker Error: $error", Toast.LENGTH_SHORT)
+                .show()
         } else if (res.resultCode == Activity.RESULT_CANCELED) {
             Toast.makeText(requireContext(), "Image Picker Canceled", Toast.LENGTH_SHORT).show()
         }
@@ -124,6 +160,7 @@ class ImagePickerFragment(private val onImagesPicked: (MutableList<Uri>) -> Unit
                     Log.e("ImagePickerFragment", "Failed to get the file path from URI: $uri")
                 }
             }
+            onImagesPicked(uriList)
             adapter.notifyDataSetChanged()
         }
     }
@@ -140,16 +177,31 @@ class ImagePickerFragment(private val onImagesPicked: (MutableList<Uri>) -> Unit
     }
 
     // Adapter to display the images
-    private class ImageAdapter(private val imagePaths: MutableList<String>) : RecyclerView.Adapter<ImageViewHolder>() {
+    private class ImageAdapter(
+        private val imagePaths: MutableList<String>,
+        private val onItemRemoved: (Int) -> Unit // A callback function to notify the Fragment
+    ) : RecyclerView.Adapter<ImageViewHolder>() {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_image, parent, false)
+            val view =
+                LayoutInflater.from(parent.context).inflate(R.layout.item_image, parent, false)
             return ImageViewHolder(view)
         }
 
         override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
             val imagePath = imagePaths[position]
             val bitmap = BitmapFactory.decodeFile(imagePath)
+
             holder.imageView.setImageBitmap(bitmap) // Set the decoded bitmap to the ImageView
+
+            holder.imageView.setOnClickListener {
+                // Remove item from the list and notify the adapter
+//                imagePaths.removeAt(position)
+                notifyItemRemoved(position)
+                notifyItemRangeChanged(position, itemCount) // To refresh the rest of the list
+
+                // Notify the Fragment to remove the item from its scope
+                onItemRemoved(position)
+            }
         }
 
         override fun getItemCount(): Int {

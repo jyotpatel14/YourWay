@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.yourway.R
 import com.example.yourway.Toast
+import com.example.yourway.userprofile.SharedPreferencesHelper
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -37,8 +38,10 @@ class HomeFeedPostListFragment : Fragment() {
         postRecyclerView = view.findViewById(R.id.rv_homefeed)
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout_homefeed_post)
 
+        val sharedPreferencesHelper = SharedPreferencesHelper(requireContext())
+
         postRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        postAdapter = PostAdapter(postList) { postId -> openPostFragment(postId) }
+        postAdapter = PostAdapter(postList,sharedPreferencesHelper) { postId -> openPostFragment(postId) }
         postRecyclerView.adapter = postAdapter
 
         fetchPosts()
@@ -78,6 +81,8 @@ class HomeFeedPostListFragment : Fragment() {
         Log.d(TAG, "Fetching initial posts...")
 
         FirebaseFirestore.getInstance().collection("posts")
+            .orderBy("likes", Query.Direction.DESCENDING)
+            .orderBy("commentCount", Query.Direction.DESCENDING)
             .orderBy("timestamp", Query.Direction.DESCENDING)
             .limit(pageSize.toLong())
             .get()

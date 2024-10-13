@@ -8,8 +8,11 @@ data class Post(
     val description: String = "",
     val imageUrls: List<String> = listOf(),
     val timestamp: Timestamp? = null,
-    val username: String = ""
+    val username: String = "",
+    var id: String = ""
 ) : Parcelable {
+
+
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
         parcel.createStringArrayList() ?: listOf(),

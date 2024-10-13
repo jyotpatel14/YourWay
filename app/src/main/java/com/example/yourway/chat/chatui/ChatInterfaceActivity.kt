@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.FragmentContainerView
 import com.example.yourway.R
+import com.example.yourway.userprofile.SharedPreferencesHelper
 import com.google.firebase.firestore.FirebaseFirestore
 
 
@@ -47,10 +48,14 @@ class ChatInterfaceActivity : AppCompatActivity() {
         ibtnCancel = findViewById(R.id.ibtn_chatui_cancel)
         ibtnSend = findViewById(R.id.ibtn_chatui_send)
 
+        val sharedPreferencesHelper = SharedPreferencesHelper(applicationContext)
+        val userProfile = sharedPreferencesHelper.getUserProfile()
+        val currentUser = userProfile?.username.toString()// Replace with the actual current username
+
 
         // Retrieve chatId from the intent
         chatId = intent.getStringExtra("chatId") ?: throw IllegalArgumentException("Chat ID not provided")
-        getChatDisplayName(chatId) { displayname ->
+        getChatDisplayName(chatId,currentUser) { displayname ->
             tvChatName.text = displayname
         }
 
@@ -78,18 +83,34 @@ class ChatInterfaceActivity : AppCompatActivity() {
         }
     }
 
-    private fun getChatDisplayName(chatId: String, callback: (String?) -> Unit) {
+    private fun getChatDisplayName(chatId: String, currentUsername: String, callback: (String?) -> Unit) {
         val firestore = FirebaseFirestore.getInstance()
 
         firestore.collection("chats").document(chatId)
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    // Retrieve either groupName or displayName
-                    val displayName = document.getString("groupName") ?: document.getString("displayName")
+                    val chatType = document.getString("chatType")
 
-                    // Return the retrieved value through the callback
-                    callback(displayName)
+                    if (chatType == "private") {
+                        // For private chats, retrieve the participants list and find the other user
+                        val participants = document.get("participants") as? List<*>
+                        if (participants != null) {
+                            // Filter the list to exclude the current user and get the other participant's name
+                            val otherParticipant = participants.firstOrNull { it != currentUsername } as? String
+                            callback(otherParticipant)
+                        } else {
+                            Log.d("getChatDisplayName", "Participants list is null")
+                            callback(null)
+                        }
+                    } else if (chatType == "group") {
+                        // For group chats, retrieve the group name
+                        val groupName = document.getString("groupName")
+                        callback(groupName)
+                    } else {
+                        // If no valid chatType is found
+                        callback(null)
+                    }
                 } else {
                     Log.d("getChatDisplayName", "No such document")
                     callback(null)
