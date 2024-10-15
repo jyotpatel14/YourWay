@@ -1,7 +1,10 @@
 package com.example.yourway
 
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
@@ -22,6 +25,7 @@ import com.example.yourway.authentication.AuthenticationActivity
 import com.example.yourway.chat.ChatBaseFragment
 import com.example.yourway.explore.DisplayOtherUserProfile
 import com.example.yourway.explore.ExploreFragment
+import com.example.yourway.explore.postimagegrid.ExplorePostList
 import com.example.yourway.fetchpost.HomeFeedPostListFragment
 import com.example.yourway.fetchpost.UserPostList
 import com.example.yourway.forum.ForumActivity
@@ -35,6 +39,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class BaseActivity : AppCompatActivity() {
+
+    companion object {
+        var isMessageNotificationServiceStarted = false // Global flag to track service start
+    }
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var fcvBase: FragmentContainerView
@@ -51,6 +59,24 @@ class BaseActivity : AppCompatActivity() {
         navView = findViewById(R.id.navigation_view_base)
 
         setDrawerLayout()
+
+        // Only create notification channel and start the service once
+        if (!isMessageNotificationServiceStarted) {
+            createNotificationChannel()
+            startChatListenerService()
+            isMessageNotificationServiceStarted = true // Mark the service as started
+        }
+
+        // Check if intent has extras to open a specific fragment
+        val fragmentToOpen = intent.getStringExtra("openFragment")
+
+        if (fragmentToOpen == "chats") {
+            // Open the chats fragment
+            openChatsFragment()
+        } else {
+            // Load default fragment or activity content
+            openDefaultFragment()
+        }
 
         var addPostLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -104,7 +130,44 @@ class BaseActivity : AppCompatActivity() {
         }
 
 
+        createNotificationChannel()
+
+    }
+
+    private fun startChatListenerService() {
+        val intent = Intent(this, ChatListenerService::class.java)
+        Thread {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+        }.start()
+    }
+
+    private fun openDefaultFragment() {
+        setFragment(HomeFeedPostListFragment())
+        Log.d("openfragment","home")
         bottomNavigationView.selectedItemId = R.id.home
+    }
+
+    private fun openChatsFragment() {
+        Log.d("openfragment","chats")
+        setFragment(ChatBaseFragment())
+        bottomNavigationView.selectedItemId = R.id.messages
+    }
+
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "chat_notifications",
+                "Chat Notifications",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     private fun setDrawerLayout() {
@@ -179,7 +242,7 @@ class BaseActivity : AppCompatActivity() {
 
 
     private fun setFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction().replace(R.id.fcv_base, fragment).commit()
+        supportFragmentManager.beginTransaction().replace(R.id.fcv_base, fragment).addToBackStack("home").commit()
     }
 
     override fun onBackPressed() {
@@ -188,14 +251,11 @@ class BaseActivity : AppCompatActivity() {
 
         if (currentFragment is DisplayOtherUserProfile) {
             // If the current fragment is DisplayOtherUserProfile, replace it with ExploreFragment
-            val exploreFragment = ExploreFragment() // Create an instance of ExploreFragment
-
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fcv_base, exploreFragment) // Replace the current fragment
-                .commit() // Commit the transaction
-        } else {
+            bottomNavigationView.selectedItemId = R.id.explore
+        }
+        else {
             // Otherwise, let the system handle the back press (default behavior)
-            super.onBackPressed()
+           finish()
         }
     }
 
@@ -208,7 +268,21 @@ class BaseActivity : AppCompatActivity() {
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.fcv_base, fragment)
-            .addToBackStack(null)  // Add to back stack if you want to allow back navigation
+            .addToBackStack("explore")  // Add to back stack if you want to allow back navigation
             .commit()
+    }
+
+    fun replaceWithExplorePostList(postId: String) {
+        val fragment = ExplorePostList().apply {
+            arguments = Bundle().apply {
+                putString("postId", postId)  // Pass postId to UserPostList fragment
+            }
+        }
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fcv_base, fragment)
+            .addToBackStack("explore")
+            .commit() // Add to back stack if you want to allow back navigation
+
     }
 }

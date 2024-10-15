@@ -67,11 +67,20 @@ class ExploreFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Show the cancel button when typing
-                displayCancelButton()
+                // Show or hide the cancel button based on input
+                if (etSearch.text.isEmpty()) {
+                    // Reload PostImageGrid if search is cleared
+                    ibtnCancel.visibility = View.GONE
+                    loadPostImageGrid()
+                    return
+                } else {
+                    displayCancelButton()
+                }
 
                 // Remove any previously scheduled searches to avoid duplicates
                 searchRunnable?.let { handler.removeCallbacks(it) }
+
+
 
                 // Set a new delayed search
                 searchRunnable = Runnable {
@@ -83,7 +92,7 @@ class ExploreFragment : Fragment() {
                 }
 
                 // Execute the search after a 2-second delay
-                handler.postDelayed(searchRunnable!!, 0)
+                handler.postDelayed(searchRunnable!!, 300)
             }
         })
 
@@ -110,7 +119,8 @@ class ExploreFragment : Fragment() {
         // Start a fragment transaction and replace the container with the fragment
         childFragmentManager.beginTransaction()
             .replace(R.id.fcv_explore, postImageGridFragment)
-            .commitAllowingStateLoss()
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun setupChoiceSpinner() {
@@ -136,7 +146,8 @@ class ExploreFragment : Fragment() {
         }
         childFragmentManager.beginTransaction()
             .replace(R.id.fcv_explore, fragment)
-            .commitAllowingStateLoss()
+            .addToBackStack(null)
+            .commit()
     }
 
 }

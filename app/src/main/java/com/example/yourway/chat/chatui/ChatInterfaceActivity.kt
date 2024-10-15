@@ -1,5 +1,6 @@
 package com.example.yourway.chat.chatui
 
+import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
@@ -15,6 +16,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.FragmentContainerView
+import com.example.yourway.BaseActivity
 import com.example.yourway.R
 import com.example.yourway.userprofile.SharedPreferencesHelper
 import com.google.firebase.firestore.FirebaseFirestore
@@ -141,5 +143,14 @@ class ChatInterfaceActivity : AppCompatActivity() {
     private fun selectMedia() {
         // Handle media selection logic
         // You can use an intent to open file picker or gallery
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        // When back is pressed, navigate to BaseActivity with chats Fragment
+        val intent = Intent(this, BaseActivity::class.java)
+        intent.putExtra("openFragment", "chats") // Pass extra to open chats fragment
+        startActivity(intent)
+        finish() // Close this activity
     }
 }

@@ -2,6 +2,8 @@ package com.example.yourway.fetchpost
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Context
+import android.os.Bundle
 import android.util.Log
 import android.view.GestureDetector
 import android.view.LayoutInflater
@@ -20,9 +22,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.yourway.R
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
+import com.example.yourway.BaseActivity
 import com.example.yourway.Toast
+import com.example.yourway.explore.DisplayOtherUserProfile
 import com.example.yourway.forum.ForumAdapter
 import com.example.yourway.userprofile.SharedPreferencesHelper
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import org.w3c.dom.Text
@@ -67,6 +72,57 @@ class PostAdapter(
         holder.tvDescription.text = post.description
         holder.tvlikesCount.text = post.likes.toString()
         holder.tvCommentCount.text = post.commentCount.toString()
+
+        holder.tvUsername.setOnClickListener {
+            val clickedUsername = holder.tvUsername.text.toString()
+
+            val currentUsername = sharedPreferencesHelper.getUserProfile()?.username
+
+            if (clickedUsername != currentUsername) {
+                // If the clicked username is different from the current username
+                val fragmentTransaction = (holder.itemView.context as BaseActivity).supportFragmentManager.beginTransaction()
+                val fragment = DisplayOtherUserProfile()
+
+                // Pass the username to the fragment (you can use a Bundle)
+                val bundle = Bundle()
+                bundle.putString("username", clickedUsername)
+                fragment.arguments = bundle
+
+                // Replace the existing fragment in the fcv_base
+                fragmentTransaction.replace(R.id.fcv_base, fragment)
+                fragmentTransaction.commit()
+            } else {
+                // If the clicked username is the same as the current username, navigate to the User profile
+                val bottomNav = (holder.itemView.context as BaseActivity).findViewById<BottomNavigationView>(R.id.bottom_nav)
+                bottomNav.selectedItemId = R.id.profile // Set the ID of the user profile navigation item
+            }
+        }
+
+        holder.ivProfileImage.setOnClickListener {
+            val clickedUsername = holder.tvUsername.text.toString()
+
+            val currentUsername = sharedPreferencesHelper.getUserProfile()?.username
+
+            if (clickedUsername != currentUsername) {
+                // If the clicked username is different from the current username
+                val fragmentTransaction = (holder.itemView.context as BaseActivity).supportFragmentManager.beginTransaction()
+                val fragment = DisplayOtherUserProfile()
+
+                // Pass the username to the fragment (you can use a Bundle)
+                val bundle = Bundle()
+                bundle.putString("username", clickedUsername)
+                fragment.arguments = bundle
+
+                // Replace the existing fragment in the fcv_base
+                fragmentTransaction.replace(R.id.fcv_base, fragment)
+                fragmentTransaction.commit()
+            } else {
+                // If the clicked username is the same as the current username, navigate to the User profile
+                val bottomNav = (holder.itemView.context as BaseActivity).findViewById<BottomNavigationView>(R.id.bottom_nav)
+                bottomNav.selectedItemId = R.id.profile // Set the ID of the user profile navigation item
+            }
+        }
+
 
         val username = sharedPreferencesHelper.getUserProfile()?.username
         if (username == post.username){

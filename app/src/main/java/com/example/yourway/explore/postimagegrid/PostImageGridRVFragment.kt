@@ -44,9 +44,9 @@ class PostImageGridRVFragment : Fragment() {
     private fun setupRecyclerView() {
         postAdapter = PostAdapter(mutableListOf()) { post ->
             // Start FullPostActivity
-            val intent = Intent(context, BaseActivity::class.java)
-            intent.putExtra("post", post)
-            startActivity(intent)
+
+            (activity as? BaseActivity)?.replaceWithExplorePostList(post.id)
+
         }
 
 
@@ -104,7 +104,9 @@ class PostImageGridRVFragment : Fragment() {
                     Toast("Data fetched...", requireContext())
                     for (doc in snapshot) {
                         val post = doc.toObject(Post::class.java)
+                        post.id = doc.id
                         posts.add(post)
+
                         Log.d("Post", "Fetched post: $post")  // Log each fetched post
                     }
                     onPostsFetched(posts)

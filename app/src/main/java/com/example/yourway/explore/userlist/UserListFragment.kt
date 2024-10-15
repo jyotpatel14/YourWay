@@ -64,7 +64,7 @@ class UserListFragment : Fragment() {
                 .get()
                 .addOnSuccessListener { documents ->
                     allUsers.addAll(documents.map {
-                        User(username = it.id, displayName = it.getString("displayName") ?: "",imageSrc = it.getString("imageSrc") ?: "")
+                        User(username = it.id, displayName = it.getString("displayName") ?: "", imageSrc = it.getString("imageSrc") ?: "")
                     })
                     userAdapter.updateUsers(allUsers)
                     swipeRefreshLayout.isRefreshing = false
@@ -74,41 +74,30 @@ class UserListFragment : Fragment() {
                     swipeRefreshLayout.isRefreshing = false
                 }
         } else {
-            // Search for users by display name
-            val displayNameQuery = firestore.collection("users")
-                .whereGreaterThanOrEqualTo("displayName", searchText)
-                .whereLessThanOrEqualTo("displayName", searchText + "\uf8ff")
-
-            // Search for usernames as document IDs
-            val usernameQuery = firestore.collection("users")
-                .whereGreaterThanOrEqualTo(FieldPath.documentId(), searchText)
-                .whereLessThanOrEqualTo(FieldPath.documentId(), searchText + "\uf8ff")
-
-            // Fetch users by display names
-            displayNameQuery.get().addOnSuccessListener { displayNameDocuments ->
-                // Add users with matching display names
-                allUsers.addAll(displayNameDocuments.map {
-                    User(username = it.id, displayName = it.getString("displayName") ?: "", imageSrc = it.getString("imageSrc") ?: "")
-                })
-
-                // Fetch users by usernames
-                usernameQuery.get().addOnSuccessListener { usernameDocuments ->
-                    // Add users with matching usernames
-                    allUsers.addAll(usernameDocuments.map {
+            // Fetch a larger set of users for client-side filtering
+            firestore.collection("users") // Adjust this limit as needed
+                .get()
+                .addOnSuccessListener { documents ->
+                    // Add all users fetched to the list
+                    allUsers.addAll(documents.map {
                         User(username = it.id, displayName = it.getString("displayName") ?: "", imageSrc = it.getString("imageSrc") ?: "")
                     })
 
-                    // Update the user adapter with the combined results
-                    userAdapter.updateUsers(allUsers.distinctBy { it.username }) // Ensure distinct usernames
+                    // Filter users by checking if their displayName or username contains the searchText
+                    val filteredUsers = allUsers.filter {
+                        (it.displayName?.contains(searchText, ignoreCase = true) == true) ||
+                                (it.username?.contains(searchText, ignoreCase = true) == true)
+                    }
+
+                    // Update the user adapter with the filtered results
+                    userAdapter.updateUsers(filteredUsers.distinctBy { it.username }) // Ensure distinct usernames
                     swipeRefreshLayout.isRefreshing = false
                 }.addOnFailureListener {
-                    Log.e("UserListFragment", "Error fetching users by username", it)
+                    Log.e("UserListFragment", "Error fetching users", it)
                     swipeRefreshLayout.isRefreshing = false
                 }
-            }.addOnFailureListener {
-                Log.e("UserListFragment", "Error fetching users by display name", it)
-                swipeRefreshLayout.isRefreshing = false
-            }
         }
     }
+
+
 }
